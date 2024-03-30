@@ -1,0 +1,3 @@
+[submodule "jax_guam"]
+	path = jax_guam
+	url = git@github.com:oswinso/jax_guam.git
