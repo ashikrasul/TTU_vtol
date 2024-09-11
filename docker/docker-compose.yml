@@ -5,7 +5,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    runtime: nvidia
+    # runtime: nvidia
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
