@@ -35,10 +35,15 @@
 
 	<node pkg="rraaa" type="converter" name="converter_node" />
 
-	<param name="/guam/plot" type="bool" value="False"/>
-	<param name="/guam/save_video" type="bool" value="False"/>
-	<node pkg="rraaa" type="node_guam.py" name="guam" output="screen" />
+	<!-- Vehicle parameters -->
+	<arg name="vehicle" value="guam"/>
 
+	<param name="vehicle" type="string" value="$(arg vehicle)"/>
+	<param name="/$(arg vehicle)/plot" type="bool" value="False"/>
+	<param name="/$(arg vehicle)/save_video" type="bool" value="False"/>
+	<node pkg="rraaa" type="node_vehicle.py" name="$(arg vehicle)" output="screen" />
+
+	<!-- Planner parameters -->
 	<node pkg="rraaa" type="node_static_landing_planner.py" name="planner" output="screen" />
 
 </launch>
