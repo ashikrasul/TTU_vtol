@@ -38,7 +38,7 @@ def get_vehicle_type() -> str:
     Get the vehicle type specified in the launch file. Check the vehicle type is valid.
     """
     # TODO: export the list of supported vehicle to some config file.
-    supported_vehicles = ["guam"]
+    supported_vehicles = ["guam", "minihawk"]
     vehicle = rospy.get_param("vehicle").lower()
     assert vehicle in supported_vehicles, f"Vehicle type {vehicle} is not supported."
     return vehicle
@@ -222,17 +222,26 @@ if __name__ == "__main__":
     pos = carla.Vector3D(0, 0, 100)
     vel = carla.Vector3D(0, 0, 0)
 
-    # Get the vehicle type. Currently supported vehicles: GUAM.
+    # Get the vehicle type. Currently supported vehicles: GUAM, MiniHawk (in progress).
     vehicle = get_vehicle_type()
-    print(f"Vehicle type: {vehicle}.")
 
-    if rospy.get_param('/guam/debug', default=False):
+    if rospy.get_param(f'/{vehicle}/debug', default=False):
         with ipdb.launch_ipdb_on_exception():
+            if vehicle == 'guam':
+                guam_node = GUAM_Node(pos, vel)
+                guam_node.main()
+            elif vehicle == 'minihawk':
+                raise NotImplementedError
+            else:
+                raise ValueError(f"Vehicle type {vehicle} is not supported.")
+    else:
+        if vehicle == 'guam':
             guam_node = GUAM_Node(pos, vel)
             guam_node.main()
-    else:
-        guam_node = GUAM_Node(pos, vel)
-        guam_node.main()
+        elif vehicle == 'minihawk':
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Vehicle type {vehicle} is not supported.")
 
     if guam_node.plot_switch:
         logger.info("Ploting...")
