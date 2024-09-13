@@ -208,19 +208,19 @@ class GUAM_Node(Vehicle_Node):
                 # [ vel_bEb, Omega_BIb, pos_bii, Q_i2b ]
                 # Convert from feet to meter
                 # North East Down in Guam ==> North East Up
-                self.guam_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084            # North
-                self.guam_pose_msg.pose.position.y = b_state.aircraft[0][7] / 3.28084
-                self.guam_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 * -1
-                self.guam_pose_msg.pose.orientation.x = b_state.aircraft[0][9]
-                self.guam_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
-                self.guam_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
-                self.guam_pose_msg.pose.orientation.w = b_state.aircraft[0][12]
-                self.guam_pose_pub.publish(self.guam_pose_msg)
+                self.vehicle_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084            # North
+                self.vehicle_pose_msg.pose.position.y = b_state.aircraft[0][7] / 3.28084
+                self.vehicle_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 * -1
+                self.vehicle_pose_msg.pose.orientation.x = b_state.aircraft[0][9]
+                self.vehicle_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
+                self.vehicle_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
+                self.vehicle_pose_msg.pose.orientation.w = b_state.aircraft[0][12]
+                self.vehicle_pose_pub.publish(self.guam_pose_msg)
 
-                self.guam_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
-                self.guam_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
-                self.guam_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084 * -1
-                self.guam_vel_pub.publish(self.guam_vel_msg)
+                self.vehicle_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
+                self.vehicle_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
+                self.vehicle_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084 * -1
+                self.vehicle_vel_pub.publish(self.vehicle_vel_msg)
 
                 if self.skip_sleep == False:
                     loop_rate.sleep()
@@ -244,6 +244,37 @@ class MiniHawk_Node(Vehicle_Node):
     def __init__(self, vehicle_type, pos, vel) -> None:
         super().__init__(vehicle_type, pos, vel)
 
+        # Topic to which pose data is published
+        self.pose_topic = "/minihawk_SIM/mavros/local_position/pose"
+
+    def main(self):
+        def pose_processor(self, pose_data):
+            """
+            Receive pose data from the Gazebo simulation, and publish it to the CARLA pose topic.
+            """
+            self.vehicle_pose_msg.pose.position.x = pose_data.pose.position.x
+            self.vehicle_pose_msg.pose.position.y = pose_data.pose.position.y
+            self.vehicle_pose_msg.pose.position.z = pose_data.pose.position.z
+            self.vehicle_pose_msg.pose.orientation.x = pose_data.pose.orientation.x
+            self.vehicle_pose_msg.pose.orientation.y = pose_data.pose.orientation.y
+            self.vehicle_pose_msg.pose.orientation.z = pose_data.pose.orientation.z
+            self.vehicle_pose_msg.pose.orientation.w = pose_data.pose.orientation.w
+            self.vehicle_pose_pub.publish(self.vehicle_pose_msg)
+        
+        def simulate():
+            rospy.spin()
+        
+        # Subscribe to the ROS topic which publishes the pose
+        pose_processor = ft.partial(pose_processor, self)
+        pose_sub = rospy.Subscriber(
+            self.pose_topic,
+            PoseStamped,
+            pose_processor
+        )
+
+        # Run the simulation
+        simulate()
+
 if __name__ == "__main__":
     pos = carla.Vector3D(0, 0, 100)
     vel = carla.Vector3D(0, 0, 0)
@@ -266,7 +297,6 @@ if __name__ == "__main__":
             guam_node = GUAM_Node(vehicle_type, pos, vel)
             guam_node.main()
         elif vehicle_type == 'minihawk':
-            import pdb; pdb.set_trace()
             minihawk_node = MiniHawk_Node(vehicle_type, pos, vel)
             minihawk_node.main()
         else:
