@@ -68,7 +68,8 @@ class Environment():
         self.tf_broadcaster = tf.TransformBroadcaster()
 
         ### ROS msg Subscriber init. ###
-        self.sub_jax_guam_pose = rospy.Subscriber('/guam/pose', PoseStamped, self.callback_jax_guam_pose)
+        vehicle_type = rospy.get_param("vehicle")
+        self.sub_jax_guam_pose = rospy.Subscriber(f'/{vehicle_type}/pose', PoseStamped, self.callback_jax_guam_pose)
 
         ### Timer for frames per second (FPS) ###
         self.fps_timer = FPSTimer()

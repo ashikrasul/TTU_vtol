@@ -44,8 +44,31 @@ def get_vehicle_type() -> str:
     return vehicle
 
 # Classes
-class GUAM_Node:
-    def __init__(self, pos, vel):
+class Vehicle_Node:
+    def __init__(self, vehicle_type, pos, vel) -> None:
+
+        # Record the vehicle type
+        self.vehicle_type = vehicle_type
+
+        # Initial position and velocity
+        self.initial_position = [pos.x, pos.y, pos.z]
+        self.initial_velocity = [vel.x, vel.y, vel.z]
+
+        # Construct the node
+        logger.info(f"Constructing a {vehicle_type} node...")
+        rospy.init_node(vehicle_type)
+        self.vehicle_pose_pub = rospy.Publisher(f'/{vehicle_type}/pose', PoseStamped, queue_size=1)
+        self.vehicle_pose_msg = PoseStamped()
+        self.vehicle_vel_pub = rospy.Publisher(f'/{vehicle_type}/velocity', Twist, queue_size=1)
+        self.vehicle_vel_msg = Twist()
+
+    def main(self):
+        raise NotImplementedError
+
+class GUAM_Node(Vehicle_Node):
+    def __init__(self, vehicle_type, pos, vel):
+        super(GUAM_Node, self).__init__(vehicle_type, pos, vel)
+
         jax_use_cpu()
         jax_use_double()
         set_logger_format()
@@ -61,15 +84,15 @@ class GUAM_Node:
         self.guam_reference = None
         self.guam_reference_sub = None
 
-        self.initial_position = [pos.x, pos.y, pos.z]
-        self.initial_velocity = [vel.x, vel.y, vel.z]
+        # self.initial_position = [pos.x, pos.y, pos.z]
+        # self.initial_velocity = [vel.x, vel.y, vel.z]
 
-        logger.info("Constructing guam node...")
-        rospy.init_node('guam')
-        self.guam_pose_pub = rospy.Publisher('/guam/pose', PoseStamped, queue_size=1)
-        self.guam_pose_msg = PoseStamped()
-        self.guam_vel_pub = rospy.Publisher('/guam/velocity', Twist, queue_size=1)
-        self.guam_vel_msg = Twist()
+        # logger.info("Constructing guam node...")
+        # rospy.init_node('guam')
+        # self.guam_pose_pub = rospy.Publisher('/guam/pose', PoseStamped, queue_size=1)
+        # self.guam_pose_msg = PoseStamped()
+        # self.guam_vel_pub = rospy.Publisher('/guam/velocity', Twist, queue_size=1)
+        # self.guam_vel_msg = Twist()
         match self.reference_type:
             case 1:
                 logger.info("Reference type is lift_cruise_reference_inputs_1")
@@ -217,31 +240,37 @@ class GUAM_Node:
         else:
             simulate_batch(self, b_state)
 
+class MiniHawk_Node(Vehicle_Node):
+    def __init__(self, vehicle_type, pos, vel) -> None:
+        super().__init__(vehicle_type, pos, vel)
 
 if __name__ == "__main__":
     pos = carla.Vector3D(0, 0, 100)
     vel = carla.Vector3D(0, 0, 0)
 
     # Get the vehicle type. Currently supported vehicles: GUAM, MiniHawk (in progress).
-    vehicle = get_vehicle_type()
+    vehicle_type = get_vehicle_type()
 
-    if rospy.get_param(f'/{vehicle}/debug', default=False):
+    if rospy.get_param(f'/{vehicle_type}/debug', default=False):
         with ipdb.launch_ipdb_on_exception():
-            if vehicle == 'guam':
-                guam_node = GUAM_Node(pos, vel)
+            if vehicle_type == 'guam':
+                guam_node = GUAM_Node(vehicle_type, pos, vel)
                 guam_node.main()
-            elif vehicle == 'minihawk':
-                raise NotImplementedError
+            elif vehicle_type == 'minihawk':
+                minihawk_node = MiniHawk_Node(vehicle_type, pos, vel)
+                minihawk_node.main()
             else:
-                raise ValueError(f"Vehicle type {vehicle} is not supported.")
+                raise ValueError(f"Vehicle type {vehicle_type} is not supported.")
     else:
-        if vehicle == 'guam':
-            guam_node = GUAM_Node(pos, vel)
+        if vehicle_type == 'guam':
+            guam_node = GUAM_Node(vehicle_type, pos, vel)
             guam_node.main()
-        elif vehicle == 'minihawk':
-            raise NotImplementedError
+        elif vehicle_type == 'minihawk':
+            import pdb; pdb.set_trace()
+            minihawk_node = MiniHawk_Node(vehicle_type, pos, vel)
+            minihawk_node.main()
         else:
-            raise ValueError(f"Vehicle type {vehicle} is not supported.")
+            raise ValueError(f"Vehicle type {vehicle_type} is not supported.")
 
     if guam_node.plot_switch:
         logger.info("Ploting...")
