@@ -215,7 +215,7 @@ class GUAM_Node(Vehicle_Node):
                 self.vehicle_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
                 self.vehicle_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
                 self.vehicle_pose_msg.pose.orientation.w = b_state.aircraft[0][12]
-                self.vehicle_pose_pub.publish(self.guam_pose_msg)
+                self.vehicle_pose_pub.publish(self.vehicle_pose_msg)
 
                 self.vehicle_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
                 self.vehicle_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
