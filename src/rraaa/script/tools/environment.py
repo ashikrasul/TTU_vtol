@@ -111,6 +111,14 @@ class Environment():
         ego_bp = self.world.get_blueprint_library().filter('model3')[0]
         ego_bp.set_attribute('role_name','ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
+        spawn_point = carla.Transform( 
+            location=spawn_point.location,
+            rotation=carla.Rotation(
+                0,
+                0,
+                0
+            )
+        )
 
         self.ego_vehicle = self.world.spawn_actor(ego_bp, spawn_point)
         self.ego_vehicle.set_autopilot(False)

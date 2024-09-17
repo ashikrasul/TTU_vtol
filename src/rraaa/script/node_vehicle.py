@@ -255,10 +255,14 @@ class MiniHawk_Node(Vehicle_Node):
             self.vehicle_pose_msg.pose.position.x = pose_data.pose.position.x
             self.vehicle_pose_msg.pose.position.y = pose_data.pose.position.y
             self.vehicle_pose_msg.pose.position.z = pose_data.pose.position.z
-            self.vehicle_pose_msg.pose.orientation.x = pose_data.pose.orientation.x
-            self.vehicle_pose_msg.pose.orientation.y = pose_data.pose.orientation.y
-            self.vehicle_pose_msg.pose.orientation.z = pose_data.pose.orientation.z
-            self.vehicle_pose_msg.pose.orientation.w = pose_data.pose.orientation.w
+            x = pose_data.pose.orientation.x
+            y = pose_data.pose.orientation.y
+            z = pose_data.pose.orientation.z
+            w = pose_data.pose.orientation.w
+            self.vehicle_pose_msg.pose.orientation.x = z
+            self.vehicle_pose_msg.pose.orientation.y = y
+            self.vehicle_pose_msg.pose.orientation.z = x
+            self.vehicle_pose_msg.pose.orientation.w = w
             self.vehicle_pose_pub.publish(self.vehicle_pose_msg)
         
         def simulate():
@@ -302,6 +306,6 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"Vehicle type {vehicle_type} is not supported.")
 
-    if guam_node.plot_switch:
+    if vehicle_type == 'guam' and guam_node.plot_switch:
         logger.info("Ploting...")
         plot_batch_with_ref(save_video=guam_node.save_video)
