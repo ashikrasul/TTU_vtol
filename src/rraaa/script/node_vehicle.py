@@ -26,12 +26,6 @@ from jax_guam.utils.logging import set_logger_format
 from plot.guam_plot_batch_with_ref import plot_batch_with_ref
 from node_static_landing_planner import landing_reference_inputs
 
-# reference_type:
-# 1 = lift_cruise_reference_inputs_1
-# 2 = lift_cruise_reference_inputs_2
-# 3 = landing_reference_inputs
-# 4 = subscriber
-
 # Functions
 def get_vehicle_type() -> str:
     """
@@ -84,15 +78,6 @@ class GUAM_Node(Vehicle_Node):
         self.guam_reference = None
         self.guam_reference_sub = None
 
-        # self.initial_position = [pos.x, pos.y, pos.z]
-        # self.initial_velocity = [vel.x, vel.y, vel.z]
-
-        # logger.info("Constructing guam node...")
-        # rospy.init_node('guam')
-        # self.guam_pose_pub = rospy.Publisher('/guam/pose', PoseStamped, queue_size=1)
-        # self.guam_pose_msg = PoseStamped()
-        # self.guam_vel_pub = rospy.Publisher('/guam/velocity', Twist, queue_size=1)
-        # self.guam_vel_msg = Twist()
         match self.reference_type:
             case 1:
                 logger.info("Reference type is lift_cruise_reference_inputs_1")
@@ -252,9 +237,13 @@ class MiniHawk_Node(Vehicle_Node):
             """
             Receive pose data from the Gazebo simulation, and publish it to the CARLA pose topic.
             """
+            # Set the location
             self.vehicle_pose_msg.pose.position.x = pose_data.pose.position.x
             self.vehicle_pose_msg.pose.position.y = pose_data.pose.position.y
             self.vehicle_pose_msg.pose.position.z = pose_data.pose.position.z
+
+            # Set the orientation
+            # NOTE: Gazebo and CARLA have different frames of reference: right-handed and left-handed respectively. The code below accounts for it correctly.
             x = pose_data.pose.orientation.x
             y = pose_data.pose.orientation.y
             z = pose_data.pose.orientation.z
@@ -270,7 +259,7 @@ class MiniHawk_Node(Vehicle_Node):
         
         # Subscribe to the ROS topic which publishes the pose
         pose_processor = ft.partial(pose_processor, self)
-        pose_sub = rospy.Subscriber(
+        rospy.Subscriber(
             self.pose_topic,
             PoseStamped,
             pose_processor

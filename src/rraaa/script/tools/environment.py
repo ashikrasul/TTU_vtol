@@ -68,8 +68,8 @@ class Environment():
         self.tf_broadcaster = tf.TransformBroadcaster()
 
         ### ROS msg Subscriber init. ###
-        vehicle_type = rospy.get_param("vehicle")
-        self.sub_jax_guam_pose = rospy.Subscriber(f'/{vehicle_type}/pose', PoseStamped, self.callback_jax_guam_pose)
+        self.vehicle_type = rospy.get_param("vehicle")
+        self.sub_jax_guam_pose = rospy.Subscriber(f'/{self.vehicle_type}/pose', PoseStamped, self.callback_jax_guam_pose)
 
         ### Timer for frames per second (FPS) ###
         self.fps_timer = FPSTimer()
@@ -111,14 +111,17 @@ class Environment():
         ego_bp = self.world.get_blueprint_library().filter('model3')[0]
         ego_bp.set_attribute('role_name','ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
-        spawn_point = carla.Transform( 
-            location=spawn_point.location,
-            rotation=carla.Rotation(
-                0,
-                0,
-                0
+        
+        # If the vehicle is MiniHawk, ensure that there is no rotation. We need it to make sure the pose processing happens correctly.
+        if self.vehicle_type == 'minihawk':
+            spawn_point = carla.Transform( 
+                location=spawn_point.location,
+                rotation=carla.Rotation(
+                    0,
+                    0,
+                    0
+                )
             )
-        )
 
         self.ego_vehicle = self.world.spawn_actor(ego_bp, spawn_point)
         self.ego_vehicle.set_autopilot(False)
