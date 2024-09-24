@@ -167,13 +167,13 @@ class Environment():
                 )
             )
         )
-        adv_obj.enable_constant_velocity(
+        adv_obj.set_target_velocity(
             velocity=carla.Vector3D(
-                5, 5, -2.5
+                -0.15, 0, -1.5
             )
         )
         adv_obj.set_autopilot(False)
-        adv_obj.set_simulate_physics(False)
+        # adv_obj.set_simulate_physics(False)
         adv_obj.set_enable_gravity(False)
 
         ### sensor initialization ###
