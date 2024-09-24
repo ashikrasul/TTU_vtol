@@ -150,6 +150,32 @@ class Environment():
         self.spawn_ego_vehicle()  # ego vehicle
         self.generate_traffic()
 
+        ### spawn adversarial objects ###
+        adv_obj = self.world.get_blueprint_library().filter("vehicle.dodge.charger_police_2020")[0]
+        adv_obj = self.world.spawn_actor(
+            adv_obj, 
+            carla.Transform( 
+                location=carla.Location(
+                    x=self.ego_vehicle.get_location().x + 10,
+                    y=self.ego_vehicle.get_location().y,
+                    z=self.ego_vehicle.get_location().z
+                ),
+                rotation=carla.Rotation(
+                    0,
+                    0,
+                    0
+                )
+            )
+        )
+        adv_obj.enable_constant_velocity(
+            velocity=carla.Vector3D(
+                5, 5, -2.5
+            )
+        )
+        adv_obj.set_autopilot(False)
+        adv_obj.set_simulate_physics(False)
+        adv_obj.set_enable_gravity(False)
+
         ### sensor initialization ###
         self.camera_front= SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=2,  z=1.5), carla.Rotation(yaw=+00, pitch=-10)),
                                         self.ego_vehicle, {'fov':'90.0', 'image_size_x': '400', 'image_size_y': '400'})

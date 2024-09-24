@@ -36,7 +36,7 @@
 	<node pkg="rraaa" type="converter" name="converter_node" />
 
 	<!-- Vehicle parameters -->
-	<arg name="vehicle" value="minihawk"/>
+	<arg name="vehicle" value="guam"/>
 
 	<param name="vehicle" type="string" value="$(arg vehicle)"/>
 	<param name="/$(arg vehicle)/plot" type="bool" value="False"/>
