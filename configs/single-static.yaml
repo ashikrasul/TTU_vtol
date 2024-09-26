@@ -1,0 +1,12 @@
+# Global
+loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+
+
+# Test
+launchfile: run.launch
+
+
+# Vehicle
+
+
+ego_vehicle: guam.yaml
