@@ -11,6 +11,8 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ..:/home/sim/simulator
+      # - /var/run/docker.sock:/var/run/docker.sock # see utils/docker.py
+      # - /usr/bin/docker:/usr/bin/docker           # see utils/docker.py
     privileged: true
     network_mode: host
     devices:

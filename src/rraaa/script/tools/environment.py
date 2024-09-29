@@ -24,11 +24,12 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 class Environment():
 
-    def __init__(self, args, client):
+    def __init__(self, args, client, config):
 
         self.args = args
         self.client = client
-        self.world = client.load_world('Town02_Opt')
+        self.config = config
+        self.world = client.load_world(config['map'])
 
         ### Setting the world ###
         self.original_settings = self.world.get_settings()

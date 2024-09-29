@@ -62,6 +62,8 @@ class ROSManager:
         # Start the launch file
         self.launch.start()
         rospy.loginfo("Launch file started.")
+        log.info("Waiting for Ctrl+C or simulation end.")
+        self.launch.spin()        
 
     def stop_launch_file(self):
         """Stop the currently running launch file."""

@@ -1,8 +1,19 @@
 import os
+import sys
 import yaml
-from . import constants
+
+from loguru import logger as log
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import constants
+
 
 def load_yaml_file(file_path):
+    if not os.path.exists(file_path):
+        log.error(f"File not found: {file_path}")
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    log.info(f"Loading YAML file: {file_path}")
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
@@ -16,25 +27,27 @@ def deep_merge(dict1, dict2):
     return dict1
 
 
-def parse_hierarchical_config(base_config_path, base_directory):
-    config_stack = [base_config_path]
-    merged_config = {}
+def parse_hierarchical_config(config_file, predefined_fields):
+    config_file = os.path.realpath(config_file)
+    assert os.path.isfile(config_file), f"Config file path invalid: {config_file}"
+    log.info(f"Loading top-level config from: {config_file}")
+    config = load_yaml_file(config_file)
 
-    while config_stack:
-        current_config_path = config_stack.pop(0)  # Process one config at a time
-
-        # Load the current config file
-        current_config = load_yaml_file(os.path.join(base_directory, current_config_path))
-
-        # Merge the current config into the merged config
-        merged_config = deep_merge(merged_config, current_config)
-
-        # Check if there are more includes and add them to the stack (FIFO)
-        includes = current_config.get('includes', [])
-        if isinstance(includes, list):
-            config_stack = includes + config_stack  # Process includes first
-
-    return merged_config
+    base_directory = os.path.dirname(config_file)
+    for field in predefined_fields:
+        if field in config:
+            subdirectory = os.path.join(base_directory, field)
+            lower_level_config_file = os.path.join(subdirectory, f"{config[field]}.yml")
+            
+            if os.path.exists(lower_level_config_file):
+                log.info(f"Loading lower-level config for field '{field}' from: {lower_level_config_file}")
+                lower_level_config = load_yaml_file(lower_level_config_file)
+                config = deep_merge(config, lower_level_config)
+            else:
+                log.error(f"Warning: {lower_level_config_file} does not exist.")
+    
+    log.info("Config parsing completed.")
+    return config
 
 
 def write_yaml_file(file_path, config):

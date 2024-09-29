@@ -27,12 +27,18 @@ import rospy
 
 from tools.environment import Environment
 
+from loguru import logger as log
+sys.path.append(os.path.abspath('/home/sim/simulator/utils'))
+from config import load_yaml_file
+import constants
+
 FREQ_LOW_LEVEL = 10
 
 
 def run_carla_node(args, client):
     pygame.init()
-    environment = Environment(args, client)
+    config = load_yaml_file(constants.merged_config_path)
+    environment = Environment(args, client, config)
 
     rospy.set_param('reset_called', False)
     rospy.set_param('episode_done', False)

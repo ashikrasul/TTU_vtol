@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 import argparse
 import os
 import signal
@@ -8,11 +10,14 @@ from utils import constants
 from utils.config import parse_hierarchical_config, write_yaml_file
 from utils.logging import set_logger, log
 from utils.ros import ROSManager
+from utils.docker import DockerManager
 
 
 def get_args():
     parser = argparse.ArgumentParser(description="RRAAA Simulator for Autonomous Air Taxis.")
-    parser.add_argument("--config", "-c", type=str, required=True, help="Path to the config file")
+    parser.add_argument("--config", "-c", type=str,
+                        default='configs/single-static.yml',
+                        help="Path to the config file")
     args = parser.parse_args()
     return args
 
@@ -20,8 +25,7 @@ def get_args():
 class Test:
 
     def __init__(self, config_path):
-        assert os.path.isfile(config_path), "Config file path invalid."
-        self.config = parse_hierarchical_config(os.path.basename(config_path), os.path.dirname(config_path))
+        self.config = parse_hierarchical_config(config_path, constants.include_fields)
         write_yaml_file(constants.merged_config_path, self.config)        
         set_logger(self.config['loglevel'])
 
