@@ -47,9 +47,7 @@ cd docker
 The above will take us to simulator container console.
 
 ```bash
-catkin_make
-source devel/setup.bash
-roslaunch rraaa run.launch
+./rraaa.py
 ```
 
 ### Contact
