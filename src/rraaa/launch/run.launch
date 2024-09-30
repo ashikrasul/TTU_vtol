@@ -46,4 +46,7 @@
 	<!-- Planner parameters -->
 	<node pkg="rraaa" type="node_static_landing_planner.py" name="planner" output="screen" />
 
+	<!-- Adversarial parameters -->
+	<param name="adv_objects_enabled" value="true"/>
+
 </launch>

@@ -80,6 +80,9 @@ class Environment():
 
         self.spectator = self.world.get_spectator()
 
+        # Adversarial object parameters
+        self.adv_objects_enabled = rospy.get_param("adv_objects_enabled")
+
         ### Start the environment ###
         self.start()
 
@@ -182,20 +185,20 @@ class Environment():
         self.generate_traffic()
 
         ### spawn the adversarial object ###
-        # TODO: I need to add a handle to not generate adversarial objects. It probably needs to be handled from the config file.
         # TODO: I need to record the list of spawned vehicles into one of the above lists
-        self.spawn_adversarial_object(
-            init_pos=[
-                self.ego_vehicle.get_location().x + 10,
-                self.ego_vehicle.get_location().y,
-                self.ego_vehicle.get_location().z
-            ],
-            init_vel=[
-                -0.15, 
-                0, 
-                -1.5
-            ]
-        )
+        if self.adv_objects_enabled:
+            self.spawn_adversarial_object(
+                init_pos=[
+                    self.ego_vehicle.get_location().x + 10,
+                    self.ego_vehicle.get_location().y,
+                    self.ego_vehicle.get_location().z
+                ],
+                init_vel=[
+                    -0.15, 
+                    0, 
+                    -1.5
+                ]
+            )
 
         ### sensor initialization ###
         self.camera_front= SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=2,  z=1.5), carla.Rotation(yaw=+00, pitch=-10)),
