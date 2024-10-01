@@ -81,6 +81,9 @@ class Environment():
 
         self.spectator = self.world.get_spectator()
 
+        # Adversarial object parameters
+        self.adv_objects_enabled = rospy.get_param("adv_objects_enabled")
+
         ### Start the environment ###
         self.start()
 
@@ -140,6 +143,37 @@ class Environment():
         self.world.tick()
         self.update_spectator()
 
+    def spawn_adversarial_object(self, init_pos, init_vel):
+        # Spawn the adversarial object
+        adv_obj = self.world.get_blueprint_library().filter("vehicle.dodge.charger_police_2020")[0]
+        adv_obj = self.world.spawn_actor(
+            adv_obj, 
+            carla.Transform( 
+                location=carla.Location(
+                    x=init_pos[0],
+                    y=init_pos[1],
+                    z=init_pos[2]
+                ),
+                rotation=carla.Rotation(
+                    0,
+                    0,
+                    0
+                )
+            )
+        )
+
+        # Set the target velocity
+        adv_obj.set_target_velocity(
+            velocity=carla.Vector3D(
+                init_vel[0],
+                init_vel[1],
+                init_vel[2]
+            )
+        )
+
+        # Set some attributes. Disabling the physics simulation won't allow to move the vehicle.
+        adv_obj.set_autopilot(False)
+        adv_obj.set_enable_gravity(False)
 
     def start(self):
 
@@ -150,6 +184,22 @@ class Environment():
         ### spawn vehicles ###
         self.spawn_ego_vehicle()  # ego vehicle
         self.generate_traffic()
+
+        ### spawn the adversarial object ###
+        # TODO: I need to record the list of spawned vehicles into one of the above lists
+        if self.adv_objects_enabled:
+            self.spawn_adversarial_object(
+                init_pos=[
+                    self.ego_vehicle.get_location().x + 10,
+                    self.ego_vehicle.get_location().y,
+                    self.ego_vehicle.get_location().z
+                ],
+                init_vel=[
+                    -0.15, 
+                    0, 
+                    -1.5
+                ]
+            )
 
         ### sensor initialization ###
         self.camera_front= SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=2,  z=1.5), carla.Rotation(yaw=+00, pitch=-10)),
