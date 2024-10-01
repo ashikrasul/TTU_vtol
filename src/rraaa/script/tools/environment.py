@@ -81,9 +81,6 @@ class Environment():
 
         self.spectator = self.world.get_spectator()
 
-        # Adversarial object parameters
-        self.adv_objects_enabled = rospy.get_param("adv_objects_enabled")
-
         ### Start the environment ###
         self.start()
 
@@ -143,21 +140,57 @@ class Environment():
         self.world.tick()
         self.update_spectator()
 
-    def spawn_adversarial_object(self, init_pos, init_vel):
+    def spawn_adversarial_object(self):
+        # TODO: I need to record the list of spawned vehicles into one of the above lists
+        # TODO: add a config parameter to choose the vehicle (e.g. Dodge, Nissan, etc)
+        if not self.config['adv_object']['enabled']:
+            return
+        
+        # Get the adversarial object's config
+        adv_config = self.config['adv_object']
+
+        # Get the initial coordinates
+        pose_init   = adv_config['pose']
+        x_location  = pose_init['location']['x']
+        y_location  = pose_init['location']['y']
+        z_location  = pose_init['location']['z']
+        roll_angle  = pose_init['rotation']['roll']
+        pitch_angle = pose_init['rotation']['pitch']
+        yaw_angle   = pose_init['rotation']['yaw']
+
+        # Get the initial velocity
+        vel_init    = adv_config['velocity']
+        x_vel       = vel_init['x']
+        y_vel       = vel_init['y']
+        z_vel       = vel_init['z']
+
+        # Add ego vehicle's coordinates if necessary
+        if adv_config['pose']['type'] == 'relative':
+            x_location  += self.ego_vehicle.get_transform().location.x
+            y_location  += self.ego_vehicle.get_transform().location.y
+            z_location  += self.ego_vehicle.get_transform().location.z
+            roll_angle  += self.ego_vehicle.get_transform().rotation.roll
+            pitch_angle += self.ego_vehicle.get_transform().rotation.pitch
+            yaw_angle   += self.ego_vehicle.get_transform().rotation.yaw
+        elif adv_config['pose']['type'] == 'absolute':
+            pass # Nothing to do
+        else:
+            raise ValueError(f"Unknown pose type: {adv_config['pose']['type']}.")
+        
         # Spawn the adversarial object
         adv_obj = self.world.get_blueprint_library().filter("vehicle.dodge.charger_police_2020")[0]
         adv_obj = self.world.spawn_actor(
             adv_obj, 
             carla.Transform( 
                 location=carla.Location(
-                    x=init_pos[0],
-                    y=init_pos[1],
-                    z=init_pos[2]
+                    x=x_location,
+                    y=y_location,
+                    z=z_location
                 ),
                 rotation=carla.Rotation(
-                    0,
-                    0,
-                    0
+                    roll=roll_angle,
+                    pitch=pitch_angle,
+                    yaw=yaw_angle
                 )
             )
         )
@@ -165,9 +198,9 @@ class Environment():
         # Set the target velocity
         adv_obj.set_target_velocity(
             velocity=carla.Vector3D(
-                init_vel[0],
-                init_vel[1],
-                init_vel[2]
+                x_vel,
+                y_vel,
+                z_vel
             )
         )
 
@@ -186,20 +219,7 @@ class Environment():
         self.generate_traffic()
 
         ### spawn the adversarial object ###
-        # TODO: I need to record the list of spawned vehicles into one of the above lists
-        if self.adv_objects_enabled:
-            self.spawn_adversarial_object(
-                init_pos=[
-                    self.ego_vehicle.get_location().x + 10,
-                    self.ego_vehicle.get_location().y,
-                    self.ego_vehicle.get_location().z
-                ],
-                init_vel=[
-                    -0.15, 
-                    0, 
-                    -1.5
-                ]
-            )
+        self.spawn_adversarial_object()
 
         ### sensor initialization ###
         self.camera_front= SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=2,  z=1.5), carla.Rotation(yaw=+00, pitch=-10)),

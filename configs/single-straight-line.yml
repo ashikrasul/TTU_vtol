@@ -17,14 +17,14 @@ adv_object:
   pose:
     type: relative # One of ["absolute", "relative"]. If "relative", then relative to the starting pose of the ego vehicle.
     location:
-      x: 0
+      x: 10
       y: 0
-      z: -20
+      z: 0
     rotation:
       roll: 0
       pitch: 0
       yaw: 0
   velocity:
-    x: 0
+    x: -0.15
     y: 0
-    z: 0
+    z: -1.5
