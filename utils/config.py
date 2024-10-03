@@ -5,7 +5,6 @@ import yaml
 from loguru import logger as log
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import constants
 
 
 def load_yaml_file(file_path):
@@ -27,30 +26,32 @@ def deep_merge(dict1, dict2):
     return dict1
 
 
-def parse_hierarchical_config(config_file, predefined_fields):
-    config_file = os.path.realpath(config_file)
-    assert os.path.isfile(config_file), f"Config file path invalid: {config_file}"
-    log.info(f"Loading top-level config from: {config_file}")
+def parse_includes(config, base_directory):
+    for key, value in config.items():
+        if isinstance(value, dict):
+            if 'include' in value:
+                include_file = value['include']
+                include_path = os.path.join(base_directory, include_file)
+                included_config = load_yaml_file(include_path)
+                log.info(f"Including file {include_file} into field {key}")
+                config[key] = deep_merge({}, included_config)
+            else:
+                config[key] = parse_includes(value, base_directory)
+    
+    return config
+
+def parse_hierarchical_config(config_file):
+    log.info(f"Loading config from: {config_file}")
     config = load_yaml_file(config_file)
 
-    base_directory = os.path.dirname(config_file)
-    for field in predefined_fields:
-        if field in config:
-            subdirectory = os.path.join(base_directory, field)
-            lower_level_config_file = os.path.join(subdirectory, f"{config[field]}.yml")
-            
-            if os.path.exists(lower_level_config_file):
-                log.info(f"Loading lower-level config for field '{field}' from: {lower_level_config_file}")
-                lower_level_config = load_yaml_file(lower_level_config_file)
-                config = deep_merge(config, lower_level_config)
-            else:
-                log.error(f"Warning: {lower_level_config_file} does not exist.")
-    
-    log.info("Config parsing completed.")
-    return config
+    # Recursively resolve includes
+    return parse_includes(config, os.path.dirname(config_file))
 
 
 def write_yaml_file(file_path, config):
+    base_directory = os.path.dirname(file_path)
+    if not os.path.exists(base_directory):
+        os.makedirs(base_directory)
     with open(file_path, 'w') as file:
         yaml.dump(config, file, default_flow_style=False)
     print(f"Config successfully written to {file_path}")
