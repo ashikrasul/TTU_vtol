@@ -34,21 +34,19 @@ def parse_includes(config, base_directory):
                 include_path = os.path.join(base_directory, include_file)
                 included_config = load_yaml_file(include_path)
                 log.info(f"Including file {include_file} into field {key}")
-                config[key] = deep_merge({}, included_config)
+                config[key] = included_config
             else:
                 config[key] = parse_includes(value, base_directory)
-    
     return config
 
 def parse_hierarchical_config(config_file):
     log.info(f"Loading config from: {config_file}")
     config = load_yaml_file(config_file)
-
-    # Recursively resolve includes
     return parse_includes(config, os.path.dirname(config_file))
 
 
 def write_yaml_file(file_path, config):
+    file_path = os.path.abspath(file_path)
     base_directory = os.path.dirname(file_path)
     if not os.path.exists(base_directory):
         os.makedirs(base_directory)

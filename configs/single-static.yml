@@ -1,9 +1,14 @@
 # Global
 loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
 
+# Order of services here is also the order in which services are started
+services:
+  carla:
+    include: services/carla.yml
+  simulator:
+    include: services/simulator.yml
 
 # Test
-launchfile: run.launch
 map: Town02_Opt
 
 # Vehicle

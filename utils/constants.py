@@ -1,11 +1,8 @@
 import os
 
-workspace_path = "/home/sim/simulator"
-ros_package = "rraaa"
-merged_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../build/.config.yml")
-compose_file = os.path.join(workspace_path, "docker/docker-compose.yml")
-config_yaml_extension = ".yml"
+base_dir = os.path.abspath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+compose_file = os.path.join(base_dir, "docker/docker-compose.yml")
+merged_config_path = os.path.join(base_dir, ".config.yml")
 
-include_fields = [
-    "ego_vehicle",
-]
+

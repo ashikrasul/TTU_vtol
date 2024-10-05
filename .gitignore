@@ -203,3 +203,5 @@ QGroundControl.AppImage
 
 # Allow randomly located results directories, without git tracking
 /results/
+
+.config.yml

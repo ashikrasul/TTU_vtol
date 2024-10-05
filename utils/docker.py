@@ -1,53 +1,111 @@
 import subprocess
+import time
 from loguru import logger as log
 
-# For now we do not use this. This creates a dependency that the
-# host OS and container base OS be identical, at minimum to have same glibc versions.
-
-class DockerManager:
-    def __init__(self, compose_file):
+class DockerContainer:
+    def __init__(self, service_name, compose_file, service_config):
+        self.service_name = service_name
         self.compose_file = compose_file
+        self.service_config = service_config
+
+        try:
+            self.start_delay = service_config['start_delay']
+        except KeyError:
+            self.start_delay = 0
 
     def _run_compose_command(self, command):
         full_command = ['docker', 'compose', '-f', self.compose_file] + command
         try:
-            result = subprocess.run(full_command, check=True, text=True)
-            if result.returncode == 0:
-                log.info(f"Command {' '.join(full_command)} executed successfully.")
+            subprocess.run(full_command, check=True, text=True)
+            log.info(f"Command {' '.join(full_command)} executed successfully.")
         except subprocess.CalledProcessError as e:
             log.error(f"Error executing command: {e}")
 
-    def start_all_services(self):
-        log.info("Starting services...")
-        self._run_compose_command(['up', '-d'])
+    def start_service(self):
+        log.info(f"Starting service: {self.service_name}")
+        self._run_compose_command(['up', '-d', self.service_name])
+        time.sleep(int(self.start_delay))
 
-    def stop_all_services(self):
-        log.warning("This container is also a service that will be stopped")
-        log.info("Stopping services...")
-        self._run_compose_command(['down'])
+    def stop_service(self):
+        log.info(f"Stopping service: {self.service_name}")
+        self._run_compose_command(['stop', self.service_name])
 
-    def restart_all_services(self):
-        log.warning("This container is also a service that will be restarted")
-        log.info("Restarting services...")
-        self._run_compose_command(['down'])
-        self._run_compose_command(['up', '-d'])
+    def run_command_in_service(self, command):
+        log.info(f"Running command in {self.service_name} container: {command}")
+        self._run_compose_command(['exec', self.service_name, '/bin/bash', '-c',  command])
 
-    def start_service(self, service_name):
-        log.info(f"Starting service: {service_name}...")
-        self._run_compose_command(['up', '-d', service_name])
 
-    def stop_service(self, service_name):
-        log.info(f"Stopping service: {service_name}...")
-        self._run_compose_command(['stop', service_name])
+class ROSContainer(DockerContainer):
+    def __init__(self, service_name, compose_file, service_config):
+        super().__init__(service_name, compose_file, service_config)
+        self.workspace_path = service_config['ros']['workspace']
+        self.ros_package = service_config['ros']['ros_package']
+        self.launch_file = service_config['ros']['launch_file']
 
-    def run_command_in_container(self, service_name, command):
-        log.info(f"Running command inside {service_name} container: {command}")
-        self._run_compose_command(['exec', service_name] + command.split())
+    def run_ros_command(self, command):
+        ros_command = f"cd {self.workspace_path} && source devel/setup.bash && {command}"
+        log.info(f"Running ROS command in service {self.service_name}: {ros_command}")
+        self.run_command_in_service(ros_command)
 
-    def view_logs(self, service_name=None):
-        if service_name:
-            log.info(f"Viewing logs for service {service_name}...")
-            self._run_compose_command(['logs', service_name])
-        else:
-            log.info("Viewing logs for all services...")
-            self._run_compose_command(['logs'])
+    def build_workspace(self):
+        self.run_ros_command("catkin_make")
+
+    def launch(self):
+        self.run_ros_command(f"roslaunch {self.ros_package} {self.launch_file}")
+    
+    # def start_service(self):
+    #     super().start_service()
+    #     self.build_workspace()
+    #     self.launch_file()
+
+
+class ContainerManager:
+    def __init__(self, config, compose_file):
+        self.config = config['services']
+        self.compose_file = compose_file
+        self.containers = []
+        self._load_containers()
+
+    def _load_containers(self):
+        for service_name, service_config in self.config.items():
+            if 'ros' in service_config:
+                ros_container = ROSContainer(service_name=service_name,
+                                             compose_file=self.compose_file,
+                                             service_config=service_config)
+                log.info(f"Loaded ROS container for service: {service_name}")
+                self.containers.append(ros_container)
+            else:
+                docker_container = DockerContainer(service_name=service_name,
+                                                   compose_file=self.compose_file, service_config=service_config)
+                log.info(f"Loaded Docker container for service: {service_name}")
+                self.containers.append(docker_container)
+
+    def start_all(self):
+        log.info("Starting all containers.")
+        for container in self.containers:
+            container.start_service()
+
+    def stop_all(self):
+        log.info("Stopping all containers.")
+        for container in self.containers:
+            container.stop_service()
+
+    def build_all_workspaces(self):
+        log.info("Building all ROS workspaces.")
+        for container in self.containers:
+            if isinstance(container, ROSContainer):
+                container.build_workspace()
+
+    def launch_in_all(self):
+        log.info("Launching ROS launch files in all ROS containers.")
+        for container in self.containers:
+            if isinstance(container, ROSContainer):
+                container.launch()
+
+    def run_command_in_all(self, command):
+        log.info(f"Running command in all containers: {command}")
+        for container in self.containers:
+            if isinstance(container, ROSContainer):
+                container.run_ros_command(command)
+            else:
+                container.run_command_in_service(command)

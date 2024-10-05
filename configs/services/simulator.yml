@@ -1,0 +1,5 @@
+start_delay: 1
+ros:
+  workspace: /home/sim/simulator
+  ros_package: rraaa
+  launch_file: run.launch
