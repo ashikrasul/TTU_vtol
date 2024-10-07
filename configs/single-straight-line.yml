@@ -1,7 +1,6 @@
 # Global
 loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
 
-
 # Order of services here is also the order in which services are started
 services:
   carla:
@@ -9,7 +8,7 @@ services:
   simulator:
     include: services/simulator.yml
 
-
+# Test
 map: Town02_Opt
 
 # Vehicle
@@ -34,3 +33,10 @@ adv_object:
     x: -0.15
     y: 0
     z: -1.5
+
+# Target point
+target:
+  type: absolute # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location. 
+  x: 0
+  y: 0
+  z: 100
