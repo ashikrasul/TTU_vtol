@@ -10,7 +10,7 @@ import constants
 from config import load_yaml_file
 
 def main():
-    pub = rospy.Publisher('/target', Twist, queue_size=10)
+    pub = rospy.Publisher('/target/pose', Twist, queue_size=10)
     rospy.init_node('target')
     r = rospy.Rate(10) # 10hz
     target_point = Twist()
@@ -20,6 +20,12 @@ def main():
     x = config['target']['x']
     y = config['target']['y']
     z = config['target']['z']
+    if config['target']['type'] == "absolute":
+        pass
+    elif config['target']['type'] == "relative":
+        raise NotImplementedError
+    else:
+        raise ValueError(f"Incorrect target type {config['target']['type']}. Must be one of: absolute, relative.")
 
     while not rospy.is_shutdown():
         target_point.linear.x = x
