@@ -36,7 +36,7 @@ adv_object:
 
 # Target point
 target:
-  type: absolute # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location. 
+  type: relative # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location. 
   x: 0
   y: 0
-  z: 100
+  z: -100
