@@ -6,7 +6,9 @@
   www.ros.org/wiki/octomap_server for details
 -->
 <launch>
+	<!--
 	<node pkg="rraaa" type="node_carla.py" name="carla_node" output="screen" />
+	-->
 
 	<node pkg="rraaa" type="node_input_display.py" name="display_node" output="screen" />
 

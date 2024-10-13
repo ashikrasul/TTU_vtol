@@ -28,8 +28,8 @@ class Environment():
 
         self.args = args
         self.client = client
-        self.config = config
-        self.world = client.load_world(config['map'])
+        # self.world = client.load_world('Town02_Opt')
+        self.world = client.get_world()
 
         ### Setting the world ###
         self.original_settings = self.world.get_settings()
@@ -109,7 +109,8 @@ class Environment():
     def spawn_ego_vehicle(self):
 
         # Instanciating the Ego vehicle to which we attached the sensors
-        ego_bp = self.world.get_blueprint_library().filter('model3')[0]
+        # ego_bp = self.world.get_blueprint_library().filter('model3')[0]
+        ego_bp = self.world.get_blueprint_library().filter('uli_minihawk')[0]
         ego_bp.set_attribute('role_name','ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
         
@@ -231,7 +232,7 @@ class Environment():
         self.camera_back = SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=-2,  z=1.5), carla.Rotation(yaw=+180, pitch=-10)),
                                         self.ego_vehicle, {'fov':'90.0', 'image_size_x': '400', 'image_size_y': '400'})
         self.camera_down = SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=0,  z=-1.5), carla.Rotation(pitch=-90)),
-                                        self.ego_vehicle, {'fov':'90.0', 'image_size_x': '400', 'image_size_y': '400'})
+                                        self.ego_vehicle, {'fov':'90.0', 'image_size_x': '448', 'image_size_y': '448'})
         self.camera_up   = SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=0,  z=2.4), carla.Rotation(pitch= 90)),
                                         self.ego_vehicle, {'fov':'90.0', 'image_size_x': '400', 'image_size_y': '400'})
         self.camera_overview  = SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=-1, z=7.0), carla.Rotation(pitch=-60)),
