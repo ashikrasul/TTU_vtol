@@ -45,7 +45,7 @@ class Test:
     def run_once(self):
         self.containermanager.start_all()
         self.containermanager.build_all_workspaces()
-        self.containermanager.launch_in_all()
+        self.containermanager.run_all()
 
     def run(self):
         self.run_once()

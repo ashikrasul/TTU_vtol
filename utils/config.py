@@ -34,7 +34,7 @@ def parse_includes(config, base_directory):
                 include_path = os.path.join(base_directory, include_file)
                 included_config = load_yaml_file(include_path)
                 log.info(f"Including file {include_file} into field {key}")
-                config[key] = included_config
+                config[key] = deep_merge(config[key], included_config)
             else:
                 config[key] = parse_includes(value, base_directory)
     return config

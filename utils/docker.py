@@ -40,19 +40,42 @@ class ROSContainer(DockerContainer):
         super().__init__(service_name, compose_file, service_config)
         self.workspace_path = service_config['ros']['workspace']
         self.ros_package = service_config['ros']['ros_package']
-        self.launch_file = service_config['ros']['launch_file']
+
+        try:
+            self.launch_files = service_config['ros']['launch_file']
+        except KeyError:
+            self.launch_files = None
+
+        try:
+            self.rosrun_files = service_config['ros']['rosrun_files']
+        except KeyError:
+            self.rosrun_files = None
+
+    def build_workspace(self):
+        ros_command = f"cd {self.workspace_path} && source /opt/ros/noetic/setup.bash && catkin_make"
+        log.info(f"Buildin {self.ros_package} in service {self.service_name}")
+        self.run_command_in_service(ros_command)
 
     def run_ros_command(self, command):
         ros_command = f"cd {self.workspace_path} && source devel/setup.bash && {command}"
         log.info(f"Running ROS command in service {self.service_name}: {ros_command}")
         self.run_command_in_service(ros_command)
 
-    def build_workspace(self):
-        self.run_ros_command("catkin_make")
+    def roslaunch(self, target):
+        self.run_ros_command(f"roslaunch {self.ros_package} {target}")
 
-    def launch(self):
-        self.run_ros_command(f"roslaunch {self.ros_package} {self.launch_file}")
-    
+    def rosrun(self, target):
+        self.run_ros_command(f"rosrun {self.ros_package} {target}")
+
+    def run_all(self):
+        if self.launch_files:
+            for launch_file in self.launch_files:
+                self.roslaunch(self, launch_file)
+        elif self.rosrun_files:
+            self.rosrun(" ".join(self.rosrun_files))
+        else:
+            log.error(f"No files to launch or run in {self.service_name}")
+
     # def start_service(self):
     #     super().start_service()
     #     self.build_workspace()
@@ -96,11 +119,11 @@ class ContainerManager:
             if isinstance(container, ROSContainer):
                 container.build_workspace()
 
-    def launch_in_all(self):
+    def run_all(self):
         log.info("Launching ROS launch files in all ROS containers.")
         for container in self.containers:
             if isinstance(container, ROSContainer):
-                container.launch()
+                container.run_all()
 
     def run_command_in_all(self, command):
         log.info(f"Running command in all containers: {command}")

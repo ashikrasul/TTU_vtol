@@ -1,6 +1,6 @@
-[submodule "jax_guam"]
-	path = jax_guam
-	url = git@github.com:oswinso/jax_guam.git
 [submodule "yolov5"]
 	path = yolov5
 	url = https://github.com/ultralytics/yolov5
+[submodule "vehicles/jaxguam/jax_guam"]
+	path = vehicles/jaxguam/jax_guam
+	url = https://github.com/oswinso/jax_guam.git

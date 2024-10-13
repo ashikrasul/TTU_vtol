@@ -3,18 +3,24 @@ loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR
 
 # Order of services here is also the order in which services are started
 services:
-  carla:
-    include: services/carla.yml
-  simulator:
-    include: services/simulator.yml
+  # carla:
+  #   include: services/carla.yml
+  # simulator:
+  #   include: services/simulator.yml
+  jaxguam:
+    include: services/jaxguam.yml
+
 
 # Test
 map: Town02_Opt
 
 # Vehicle
 ego_vehicle:
-  type: guam # One of ["guam", "minihawk"]
-  location: 
+  include: ego_vehicle/jaxguam.yml
+  location:
+    x: 0
+    y: 0
+    z: -100
 
 # Adversarial object
 adv_object:
