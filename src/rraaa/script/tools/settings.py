@@ -1,1 +1,0 @@
-LOOP_FREQ = 10

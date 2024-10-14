@@ -205,3 +205,46 @@ QGroundControl.AppImage
 /results/
 
 utils/.config.yml
+
+# Ignore catkin and colcon build directories
+/build/
+/devel/
+/install/
+
+# Ignore build directories at any level in the directory structure
+**/build/
+**/devel/
+**/install/
+
+# Ignore Python cache files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Ignore CMake and other build system files
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+
+# Ignore logs
+log/
+logs/
+**/log/
+
+# Ignore temporary files
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# Ignore IDE-specific files (optional, depending on IDE)
+.vscode/
+.idea/
+*.code-workspace
+
+# Ignore ROS-specific files that are automatically generated
+.mrconfig
+.rosinstall
+.rosinstall.bak

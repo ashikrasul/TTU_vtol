@@ -1,5 +1,6 @@
 import subprocess
 import time
+import threading
 from loguru import logger as log
 
 class DockerContainer:
@@ -23,7 +24,7 @@ class DockerContainer:
 
     def start_service(self):
         log.info(f"Starting service: {self.service_name}")
-        self._run_compose_command(['up', '-d', self.service_name])
+        self._run_compose_command(['up', '-d', self.service_name, '--remove-orphans'])
         time.sleep(int(self.start_delay))
 
     def stop_service(self):
@@ -42,9 +43,9 @@ class ROSContainer(DockerContainer):
         self.ros_package = service_config['ros']['ros_package']
 
         try:
-            self.launch_files = service_config['ros']['launch_file']
+            self.launch_file = service_config['ros']['launch_file']
         except KeyError:
-            self.launch_files = None
+            self.launch_file = None
 
         try:
             self.rosrun_files = service_config['ros']['rosrun_files']
@@ -62,15 +63,14 @@ class ROSContainer(DockerContainer):
         self.run_command_in_service(ros_command)
 
     def roslaunch(self, target):
-        self.run_ros_command(f"roslaunch {self.ros_package} {target}")
+        threading.Thread(target=self.run_ros_command, args=(f"roslaunch {self.ros_package} {target}",)).start()
 
     def rosrun(self, target):
-        self.run_ros_command(f"rosrun {self.ros_package} {target}")
+        threading.Thread(target=self.run_ros_command, args=(f"rosrun {self.ros_package} {target}",)).start()
 
     def run_all(self):
-        if self.launch_files:
-            for launch_file in self.launch_files:
-                self.roslaunch(self, launch_file)
+        if self.launch_file:
+            self.roslaunch(self.launch_file)
         elif self.rosrun_files:
             self.rosrun(" ".join(self.rosrun_files))
         else:

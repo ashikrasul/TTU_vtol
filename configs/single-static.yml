@@ -3,16 +3,16 @@ loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR
 
 # Order of services here is also the order in which services are started
 services:
-  # carla:
-  #   include: services/carla.yml
-  # simulator:
-  #   include: services/simulator.yml
+  carla:
+    include: services/carla.yml
   jaxguam:
     include: services/jaxguam.yml
-
+  env_sim:
+    include: services/env_sim.yml
 
 # Test
 map: Town02_Opt
+spectator_follows_ego_vehicle: false
 
 # Vehicle
 ego_vehicle:
@@ -20,7 +20,11 @@ ego_vehicle:
   location:
     x: 0
     y: 0
-    z: -100
+    z: 0
+  velocity:
+    x: 0
+    y: 0
+    z: 0
 
 # Adversarial object
 adv_object:

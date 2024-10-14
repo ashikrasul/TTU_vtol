@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFAULT_SERVICE_NAME="simulator"
+DEFAULT_SERVICE_NAME="env_sim"
 
 SERVICE_NAME="${1:-$DEFAULT_SERVICE_NAME}"
 

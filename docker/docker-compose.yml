@@ -36,51 +36,17 @@ services:
                 - driver: nvidia
                   count: "all"
                   capabilities: [compute,utility,graphics,display]
-  # carla:
-  #   container_name: carla
-  #   image: stargaze0909/carla_uli_ubuntu20:latest
-  #   privileged: true
-  #   network_mode: host
-  #   environment:
-  #     - DISPLAY=${DISPLAY}
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #         - driver: nvidia
-  #           capabilities: [gpu]
-  #   command: /bin/bash ./CarlaUE4.sh
 
-  carla_api:
-    container_name: carla_api
+  env_sim:
+    container_name: env_sim
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.CarlaUbuntu20
-    runtime: nvidia
-    volumes:
-      - ..:/home/sim/simulator
-    privileged: true
-    network_mode: host
-    devices:
-      - "/dev/snd"
-    tty: true
-    stdin_open: true
-    working_dir: /home/sim/simulator
-    command: /bin/bash -c 'sleep 5 && source /opt/ros/noetic/setup.bash && catkin_make && source /home/sim/simulator/devel/setup.bash && rosrun rraaa node_carla.py'
-  
-  simulator:
-    container_name: simulator
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    # runtime: nvidia
+      context: ../env_sim
+      dockerfile: Dockerfile
     environment:
-      - DISPLAY=${DISPLAY}
+      - DISPLAY=${DISPLAY}      
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ..:/home/sim/simulator
-      # - /var/run/docker.sock:/var/run/docker.sock # see utils/docker.py
-      # - /usr/bin/docker:/usr/bin/docker           # see utils/docker.py
+        - ../env_sim:/catkin_ws/src/env_sim
+        - ../utils:/catkin_ws/src/env_sim/rraaa/script/utils
     privileged: true
     network_mode: host
     devices:
@@ -89,7 +55,7 @@ services:
     stdin_open: true
     depends_on:
       - roscore    
-    working_dir: /home/sim/simulator
+    working_dir: /catkin_ws/src/env_sim
 
   jaxguam:
     container_name: jaxguam
@@ -98,7 +64,7 @@ services:
       dockerfile: Dockerfile
     volumes:
         - ../vehicles/jaxguam:/catkin_ws/src/jaxguam
-        - ../utils:/catkin_ws/src/jaxguam/scripts/utils
+        - ../utils:/catkin_ws/src/jaxguam/script/utils
     privileged: true
     network_mode: host
     devices:
@@ -108,3 +74,22 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/jax_guam
+
+  yolov5:
+    container_name: yolov5
+    build:
+      context: ../perception/yolov5
+      dockerfile: Dockerfile
+    volumes:
+        - ../perception/yolov5:/catkin_ws/src/yolov5
+        - ../utils:/catkin_ws/src/yolov5/script/utils
+        - ../perception/yolov5/yolov5s.pt:/catkin_ws/yolo_param/yolov5s.pt
+    privileged: true
+    network_mode: host
+    devices:
+      - "/dev/snd"
+    tty: true
+    stdin_open: true
+    depends_on:
+      - roscore
+    working_dir: /catkin_ws/src/yolov5    

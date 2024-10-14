@@ -1,1 +1,6 @@
 type: jaxguam
+model: uli_minihawk
+debug: false
+plot: false
+save_video: false
+skip_sleep: false

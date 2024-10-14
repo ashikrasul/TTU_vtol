@@ -1,1 +1,4 @@
-name: minihawk
+type: minihawk
+model: uli_minihawk
+debug: false
+save_video: false
