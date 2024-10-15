@@ -17,8 +17,11 @@ class DockerContainer:
     def _run_compose_command(self, command):
         full_command = ['docker', 'compose', '-f', self.compose_file] + command
         try:
-            subprocess.run(full_command, check=True, text=True)
+            result = subprocess.run(full_command,
+                           check=True, capture_output=True, text=True)
             log.info(f"Command {' '.join(full_command)} executed successfully.")
+            log.warning(result.stderr)
+            log.info(result.stdout)
         except subprocess.CalledProcessError as e:
             log.error(f"Error executing command: {e}")
 
