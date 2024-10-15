@@ -42,6 +42,8 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
         libomp-dev \
         libopencv-dev \
         libqglviewer-dev-qt5 \
+        qt5-default qt5-qmake qtbase5-dev \
+        qtbase5-dev-tools libqt5x11extras5-dev \
         libtbb-dev \
         lsb-release \
         make \
