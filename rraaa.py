@@ -27,8 +27,8 @@ class Test:
         set_logger(self.config['loglevel'])
 
         atexit.register(self.shutdown)
-        signal.signal(signal.SIGINT, self.shutdown)
-        signal.signal(signal.SIGTERM, self.shutdown)
+        signal.signal(signal.SIGINT, self.shutdown_handler)
+        signal.signal(signal.SIGTERM, self.shutdown_handler)
 
         self.containermanager = ContainerManager(
                                     self.config, constants.compose_file)
@@ -42,10 +42,14 @@ class Test:
             log.info(f"Terminated with signal {signal_number}")
         sys.exit(0)
 
+    def shutdown_handler(self, signal_number, frame):
+        self.shutdown(signal_number)
+
     def run_once(self):
         self.containermanager.start_all()
         self.containermanager.build_all_workspaces()
         self.containermanager.run_all()
+        self.containermanager.wait_for_all()
 
     def run(self):
         self.run_once()
