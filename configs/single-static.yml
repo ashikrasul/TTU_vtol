@@ -9,6 +9,8 @@ services:
     include: services/jaxguam.yml
   env_sim:
     include: services/env_sim.yml
+  ground_station:
+    include: services/ground_station.yml
 
 # Test
 map: Town02_Opt
