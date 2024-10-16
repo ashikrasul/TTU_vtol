@@ -44,7 +44,8 @@ class DockerContainer:
     def wait_for_all(self):
         try:
             for process in self.processes:
-                process.wait()
+                if process is not None:
+                    process.wait()
         except KeyboardInterrupt:
             log.info("\nReceived interrupt. Terminating all processes.")
             self.terminate_all()
@@ -58,7 +59,7 @@ class DockerContainer:
                     log.info(f"Terminated process PID: {process.pid}")
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    log.warn(f"Force killed process PID: {process.pid}")
+                    log.warning(f"Force killed process PID: {process.pid}")
 
 
 class ROSContainer(DockerContainer):
