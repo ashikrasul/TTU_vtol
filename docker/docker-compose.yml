@@ -43,8 +43,9 @@ services:
       context: ../env_sim
       dockerfile: Dockerfile
     environment:
-      - DISPLAY=${DISPLAY}      
+      - DISPLAY=${DISPLAY}
     volumes:
+        - /tmp/.X11-unix:/tmp/.X11-unix:rw
         - ../env_sim:/catkin_ws/src/env_sim
         - ../utils:/catkin_ws/src/env_sim/rraaa/script/utils
     privileged: true
