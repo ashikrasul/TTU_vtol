@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import time
 import threading
 from loguru import logger as log
@@ -8,20 +9,22 @@ class DockerContainer:
         self.service_name = service_name
         self.compose_file = compose_file
         self.service_config = service_config
+        self.processes = []
 
         try:
             self.start_delay = service_config['start_delay']
         except KeyError:
             self.start_delay = 0
 
-    def _run_compose_command(self, command):
+    def _run_compose_command(self, command, background = False):
         full_command = ['docker', 'compose', '-f', self.compose_file] + command
         try:
-            result = subprocess.run(full_command,
-                           check=True, capture_output=True, text=True)
-            log.info(f"Command {' '.join(full_command)} executed successfully.")
-            log.warning(result.stderr)
-            log.info(result.stdout)
+            if background:
+                process = subprocess.Popen(full_command, stdout=sys.stdout, stderr=sys.stderr, text=True)
+                self.processes.append(process)
+            else:
+                subprocess.run(full_command, check=True, text=True)
+                log.info(f"Command {' '.join(full_command)} executed successfully.")
         except subprocess.CalledProcessError as e:
             log.error(f"Error executing command: {e}")
 
@@ -34,9 +37,28 @@ class DockerContainer:
         log.info(f"Stopping service: {self.service_name}")
         self._run_compose_command(['stop', self.service_name])
 
-    def run_command_in_service(self, command):
+    def run_command_in_service(self, command, background = False):
         log.info(f"Running command in {self.service_name} container: {command}")
-        self._run_compose_command(['exec', self.service_name, '/bin/bash', '-c',  command])
+        return self._run_compose_command(['exec', self.service_name, '/bin/bash', '-c',  command], background)
+
+    def wait_for_all(self):
+        try:
+            for process in self.processes:
+                process.wait()
+        except KeyboardInterrupt:
+            log.info("\nReceived interrupt. Terminating all processes.")
+            self.terminate_all()
+
+    def terminate_all(self):
+        for process in self.processes:
+            if process is not None:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                    log.info(f"Terminated process PID: {process.pid}")
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    log.warn(f"Force killed process PID: {process.pid}")
 
 
 class ROSContainer(DockerContainer):
@@ -44,6 +66,7 @@ class ROSContainer(DockerContainer):
         super().__init__(service_name, compose_file, service_config)
         self.workspace_path = service_config['ros']['workspace']
         self.ros_package = service_config['ros']['ros_package']
+        
 
         try:
             self.launch_file = service_config['ros']['launch_file']
@@ -60,16 +83,18 @@ class ROSContainer(DockerContainer):
         log.info(f"Buildin {self.ros_package} in service {self.service_name}")
         self.run_command_in_service(ros_command)
 
-    def run_ros_command(self, command):
+    def run_ros_command(self, command, background = False):
         ros_command = f"cd {self.workspace_path} && source devel/setup.bash && {command}"
         log.info(f"Running ROS command in service {self.service_name}: {ros_command}")
-        self.run_command_in_service(ros_command)
+        return self.run_command_in_service(ros_command, background)
 
     def roslaunch(self, target):
-        threading.Thread(target=self.run_ros_command, args=(f"roslaunch {self.ros_package} {target}",)).start()
+        # threading.Thread(target=self.run_ros_command, args=(f"roslaunch {self.ros_package} {target}",)).start()
+        self.processes.append(self.run_ros_command(f"roslaunch {self.ros_package} {target}", background=True))
 
     def rosrun(self, target):
-        threading.Thread(target=self.run_ros_command, args=(f"rosrun {self.ros_package} {target}",)).start()
+        # threading.Thread(target=self.run_ros_command, args=(f"rosrun {self.ros_package} {target}",)).start()
+        self.processes.append(self.run_ros_command(f"rosrun {self.ros_package} {target}", background=True))
 
     def run_all(self):
         if self.launch_file:
@@ -114,6 +139,8 @@ class ContainerManager:
     def stop_all(self):
         log.info("Stopping all containers.")
         for container in self.containers:
+            if isinstance(container, ROSContainer):
+                container.terminate_all()            
             container.stop_service()
 
     def build_all_workspaces(self):
@@ -135,3 +162,7 @@ class ContainerManager:
                 container.run_ros_command(command)
             else:
                 container.run_command_in_service(command)
+
+    def wait_for_all(self):
+        for container in self.containers:
+            container.wait_for_all()
