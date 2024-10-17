@@ -30,6 +30,11 @@ class DockerContainer:
 
     def start_service(self):
         log.info(f"Starting service: {self.service_name}")
+        try:
+            for command in self.service_config['host_setup']:
+                self.run_command_on_host(command.split(' '))
+        except KeyError:
+            pass
         self._run_compose_command(['up', '-d', self.service_name, '--remove-orphans'])
         time.sleep(int(self.start_delay))
 
@@ -61,6 +66,12 @@ class DockerContainer:
                     process.kill()
                     log.warning(f"Force killed process PID: {process.pid}")
 
+    def run_command_on_host(self, command):
+        try:
+            subprocess.run(command, check=True, text=True)
+            log.info(f"Command {' '.join(command)} executed successfully.")
+        except subprocess.CalledProcessError as e:
+            log.error(f"Error executing command: {e}")
 
 class ROSContainer(DockerContainer):
     def __init__(self, service_name, compose_file, service_config):
