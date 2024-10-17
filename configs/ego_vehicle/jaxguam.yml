@@ -1,5 +1,5 @@
 type: jaxguam
-model: uli_minihawk
+model: uli_cora
 debug: false
 plot: false
 save_video: false
