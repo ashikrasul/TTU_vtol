@@ -47,8 +47,8 @@ class GUAM_Node(Vehicle_Node):
         self.guam_reference_sub = None
 
         logger.info("Subscribing to planner for trajectory reference...")
-        self.guam_reference_sub = rospy.Subscriber('/planner/reference',
-                                                    JointTrajectoryPoint,
+        self.guam_reference_sub = rospy.Subscriber('/target/pose',
+                                                    Twist,
                                                     self.guam_reference_callback)
         self.guam_reference_init()
         while self.guam_reference is None:
@@ -69,8 +69,8 @@ class GUAM_Node(Vehicle_Node):
 
     def guam_reference_callback(self, msg):
         # convert meter to feet
-        pos_des = jnp.array(msg.positions) * jnp.array([3.28084, 3.28084, -3.28084])
-        vel_bIc_des = jnp.array(msg.velocities) * jnp.array([3.28084, -3.28084, -3.28084])
+        pos_des = jnp.array([msg.linear.x, msg.linear.y, msg.linear.z]) * jnp.array([3.28084, 3.28084, -3.28084])
+        vel_bIc_des = jnp.array(self.guam_reference.Vel_bIc_des) * jnp.array([3.28084, -3.28084, -3.28084])
         chi_des = 0
         chi_dot_des = 0
         self.guam_reference = RefInputs(
