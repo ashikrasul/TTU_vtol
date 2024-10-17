@@ -30,11 +30,6 @@ class DockerContainer:
 
     def start_service(self):
         log.info(f"Starting service: {self.service_name}")
-        try:
-            for command in self.service_config['host_setup']:
-                self.run_command_on_host(command.split(' '))
-        except KeyError:
-            pass
         self._run_compose_command(['up', '-d', self.service_name, '--remove-orphans'])
         time.sleep(int(self.start_delay))
 
@@ -66,12 +61,6 @@ class DockerContainer:
                     process.kill()
                     log.warning(f"Force killed process PID: {process.pid}")
 
-    def run_command_on_host(self, command):
-        try:
-            subprocess.run(command, check=True, text=True)
-            log.info(f"Command {' '.join(command)} executed successfully.")
-        except subprocess.CalledProcessError as e:
-            log.error(f"Error executing command: {e}")
 
 class ROSContainer(DockerContainer):
     def __init__(self, service_name, compose_file, service_config):
@@ -79,7 +68,6 @@ class ROSContainer(DockerContainer):
         self.workspace_path = service_config['ros']['workspace']
         self.ros_package = service_config['ros']['ros_package']
         
-
         try:
             self.launch_file = service_config['ros']['launch_file']
         except KeyError:
@@ -128,6 +116,13 @@ class ContainerManager:
         self.compose_file = compose_file
         self.containers = []
         self._load_containers()
+        for service in self.config:
+            service_config = self.config[service]
+            try:
+                for command in service_config['host_setup']:
+                    self.run_command_on_host(command.split(' '))
+            except KeyError:
+                pass
 
     def _load_containers(self):
         for service_name, service_config in self.config.items():
@@ -178,3 +173,10 @@ class ContainerManager:
     def wait_for_all(self):
         for container in self.containers:
             container.wait_for_all()
+
+    def run_command_on_host(self, command):
+        try:
+            subprocess.run(command, check=True, text=True)
+            log.info(f"Command {' '.join(command)} executed successfully.")
+        except subprocess.CalledProcessError as e:
+            log.error(f"Error executing command: {e}")
