@@ -23,15 +23,16 @@ services:
 
 # Test
 map: Town02_Opt
-spectator_follows_ego_vehicle: false
+spectator_follows_ego_vehicle: True
 
 # Vehicle
 ego_vehicle:
   include: ego_vehicle/jaxguam.yml
+  debug: false
   location:
     x: 0
     y: 0
-    z: 0
+    z: 100
   velocity:
     x: 0
     y: 0

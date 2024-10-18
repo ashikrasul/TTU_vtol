@@ -113,7 +113,6 @@ class GUAM_Node(Vehicle_Node):
 
         def simulate_batch(self, b_state0) -> GuamState:
             b_state = b_state0
-
             if self.plot_switch:
                 Tb_state = [b_state0]
                 time_list = [0]

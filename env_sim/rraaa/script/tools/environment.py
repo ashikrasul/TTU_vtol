@@ -135,7 +135,7 @@ class Environment():
         except KeyError:
             pass
 
-        spawn_point.location.z = spawn_point.location.z + 100
+        # spawn_point.location.z = spawn_point.location.z + 100
         self.ego_vehicle = self.world.spawn_actor(ego_bp, spawn_point)
         self.ego_vehicle.set_autopilot(False)
         self.ego_vehicle.set_simulate_physics(False)
@@ -146,10 +146,10 @@ class Environment():
         self.initial_transform = self.ego_vehicle.get_transform()
 
         # Manually move the ego vehicle to 100m elevation. Match to node_guam.py:guam_reference_init
-        location = self.ego_vehicle.get_location()
-        new_location = location + carla.Location(x=0.0, y=0.0, z=100.0)
-        self.ego_vehicle.set_location(new_location)
-        self.world.tick()
+        # location = self.ego_vehicle.get_location()
+        # new_location = location + carla.Location(x=0.0, y=0.0, z=100.0)
+        # self.ego_vehicle.set_location(new_location)
+        # self.world.tick()
         self.update_spectator()
 
     def spawn_adversarial_object(self):
@@ -302,7 +302,8 @@ class Environment():
         ### Overrisde the pose, i.e., transform ###
         transform = self.ego_vehicle.get_transform()
         matlab_location = carla.Location(X, -Y, Z) # CARLA uses the Unreal Engine coordinates system. This is a Z-up left-handed system.
-        transform.location = matlab_location + self.initial_transform.location
+        # transform.location = matlab_location + self.initial_transform.location # NOTE: this line was causing incorrect behaviour in CARLA, because the vehicle was offset WRT CARLA coordinates
+        transform.location = matlab_location
         matlab_rotation = carla.Rotation(rad2deg(-pitch), rad2deg(-yaw), rad2deg(roll))  # The constructor method follows a specific order of declaration: (pitch, yaw, roll), which corresponds to (Y-rotation,Z-rotation,X-rotation).
         transform.rotation = add_carla_rotations(matlab_rotation, self.initial_transform.rotation)
         self.ego_vehicle.set_transform(transform)
