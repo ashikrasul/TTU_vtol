@@ -58,6 +58,22 @@ services:
       - roscore    
     working_dir: /catkin_ws/src/env_sim
 
+  sim_control:
+    container_name: sim_control
+    build:
+      context: ../sim_control
+      dockerfile: Dockerfile
+    volumes:
+        - ../sim_control:/catkin_ws/src/sim_control
+        - ../utils:/catkin_ws/src/sim_control/script/utils
+    privileged: true
+    network_mode: host
+    tty: true
+    stdin_open: true
+    depends_on:
+      - roscore
+    working_dir: /catkin_ws/src/sim_control
+
   jaxguam:
     container_name: jaxguam
     build:
@@ -102,7 +118,7 @@ services:
       dockerfile: Dockerfile
     volumes:
         - ../ground_station:/catkin_ws/src/ground_station
-        - ../utils:/catkin_ws/src/ground_station/scripts/utils
+        - ../utils:/catkin_ws/src/ground_station/script/utils
     privileged: true
     network_mode: host
     devices:

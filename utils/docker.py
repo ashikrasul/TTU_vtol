@@ -1,3 +1,4 @@
+import signal
 import subprocess
 import sys
 import time
@@ -52,14 +53,25 @@ class DockerContainer:
 
     def terminate_all(self):
         for process in self.processes:
+            terminated = False
             if process is not None:
-                process.terminate()
+                process.send_signal(signal.SIGINT)
                 try:
                     process.wait(timeout=5)
-                    log.info(f"Terminated process PID: {process.pid}")
+                    terminated = True
+                except subprocess.TimeoutExpired:
+                    process.terminate()
+
+                if terminated:
+                    log.trace(f"Terminated process PID: {process.pid}")
+                    continue
+
+                try:
+                    process.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     process.kill()
                     log.warning(f"Force killed process PID: {process.pid}")
+                log.trace(f"Terminated process PID: {process.pid}")
 
 
 class ROSContainer(DockerContainer):
@@ -89,11 +101,9 @@ class ROSContainer(DockerContainer):
         return self.run_command_in_service(ros_command, background)
 
     def roslaunch(self, target):
-        # threading.Thread(target=self.run_ros_command, args=(f"roslaunch {self.ros_package} {target}",)).start()
         self.processes.append(self.run_ros_command(f"roslaunch {self.ros_package} {target}", background=True))
 
     def rosrun(self, target):
-        # threading.Thread(target=self.run_ros_command, args=(f"rosrun {self.ros_package} {target}",)).start()
         self.processes.append(self.run_ros_command(f"rosrun {self.ros_package} {target}", background=True))
 
     def run_all(self):
@@ -162,17 +172,24 @@ class ContainerManager:
             if isinstance(container, ROSContainer):
                 container.run_all()
 
-    def run_command_in_all(self, command):
-        log.info(f"Running command in all containers: {command}")
+    def reset_all(self):
+        log.info("Restarting all ROS containers.")
         for container in self.containers:
             if isinstance(container, ROSContainer):
-                container.run_ros_command(command)
+                container.terminate_all()
             else:
-                container.run_command_in_service(command)
+                container.stop_service()
+                container.start_service()
+        self.run_all()
 
     def wait_for_all(self):
         for container in self.containers:
             container.wait_for_all()
+
+    def terminate_all(self):
+        for container in self.containers:
+            container.terminate_all()
+
 
     def run_command_on_host(self, command):
         try:

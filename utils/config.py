@@ -1,10 +1,12 @@
 import os
+import shutil
 import sys
 import yaml
 
 from loguru import logger as log
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import constants
 
 
 def load_yaml_file(file_path):
@@ -12,10 +14,23 @@ def load_yaml_file(file_path):
         log.error(f"File not found: {file_path}")
         raise FileNotFoundError(f"File not found: {file_path}")
     
-    log.info(f"Loading YAML file: {file_path}")
+    log.trace(f"Loading YAML file: {file_path}")
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
+def write_shared_tmp_file(file_name, data):
+    directory = os.path.dirname(constants.merged_config_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(os.path.join(directory, file_name), 'w', buffering=1) as file:
+        file.write(str(data))
+        file.flush()
+
+def read_shared_tmp_file(file_name):
+    directory = os.path.dirname(constants.merged_config_path)
+    with open(os.path.join(directory, file_name), 'r') as file:
+        content = file.read()
+    return content
 
 def deep_merge(dict1, dict2):
     for key, value in dict2.items():
@@ -45,11 +60,14 @@ def parse_hierarchical_config(config_file):
     return parse_includes(config, os.path.dirname(config_file))
 
 
-def write_yaml_file(file_path, config):
+def write_flattened_config(file_path, config):
     file_path = os.path.abspath(file_path)
     base_directory = os.path.dirname(file_path)
-    if not os.path.exists(base_directory):
-        os.makedirs(base_directory)
+
+    if os.path.exists(base_directory) and os.path.isdir(base_directory):
+        shutil.rmtree(base_directory)
+
+    os.makedirs(base_directory)
     with open(file_path, 'w') as file:
         yaml.dump(config, file, default_flow_style=False)
     print(f"Config successfully written to {file_path}")

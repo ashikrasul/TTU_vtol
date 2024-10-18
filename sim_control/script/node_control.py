@@ -3,41 +3,46 @@
 import os
 import sys
 import math
+
 import rospy
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped, Twist
 
-sys.path.append(os.path.abspath('/home/sim/simulator/utils'))
-from config import load_yaml_file
-import constants
+from loguru import logger as log
 
-class MetricTracker:
-    def __init__(self, configs) -> None:
-        self.configs = configs
+from utils.config import load_yaml_file, write_shared_tmp_file
+from utils import constants
+
+class SimControl:
+    def __init__(self) -> None:
+        self.config = load_yaml_file(constants.merged_config_path)
 
         # Initialize the ROS node
         rospy.init_node("metric_tracker")
-        
+        self.rate = rospy.Rate(constants.frequency_low)
+
         # Pose & target pose
         self.pose = None
         self.target_pose = None
-        self.target_reached_pub = rospy.Publisher('/target_reached', Bool, queue_size=10)
-        self.pose_threshold = 1e-1 # If the distance between the target pose and the current pose is less than this number in meters, then the target is reached.
-        self.pose_sub = rospy.Subscriber(f"/{configs['ego_vehicle']['type']}/pose", PoseStamped, self.pose_callback)
+        self.target_reached_pub = rospy.Publisher('/sim_control/target_reached', Bool, queue_size=1)
+        self.target_reached = False
+        self.pose_threshold = self.config['landing_threshold'] # If the distance between the target pose and the current pose is less than this number in meters, then the target is reached.
+        self.pose_sub = rospy.Subscriber(f"/{self.config['ego_vehicle']['type']}/pose", PoseStamped, self.pose_callback)
         self.target_pose_sub = rospy.Subscriber(f"/target/pose", Twist, self.target_pose_callback)
 
     def pose_callback(self, msg):
-        # Record the current pose
-        self.pose = msg
-        
-        # Check if the target point has been reached
-        if self.pose_is_within_threshold():
-            reached = True
-        else:
-            reached = False
+        if self.target_reached:
+            return
 
-        # Publish the data related to reaching the target point
-        self.target_reached_pub.publish(reached)
+        self.pose = msg
+        if self.pose_is_within_threshold():
+            log.info("Landing target reached.")
+            self.target_reached = True
+        else:
+            log.trace("Landing target not reached.")
+
+        self.target_reached_pub.publish(self.target_reached)
+        write_shared_tmp_file(constants.landing_target_reached_file, self.target_reached)
 
     def target_pose_callback(self, msg):
         self.target_pose = msg
@@ -59,21 +64,12 @@ class MetricTracker:
 
         # Find the distance
         dist = math.sqrt((curr_x - targ_x) ** 2 + (curr_y - targ_y) ** 2 + (curr_z - targ_z) ** 2)
-
-        if dist <= self.pose_threshold:
-            return True
-        else:
-            return False
+        return dist <= self.pose_threshold
 
     def run(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+            self.rate.sleep()
 
 if __name__ == "__main__":
-    # Extract the configs
-    configs = load_yaml_file(constants.merged_config_path)
-
-    # Initialize the metric tracker
-    metric_tracker = MetricTracker(configs)
-
-    # Run the metric tracker
-    metric_tracker.run()
+    controller = SimControl()
+    controller.run()

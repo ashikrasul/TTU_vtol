@@ -1,6 +1,15 @@
 # Troubleshooting Guide
 
 
+## Problem: Simulator stuck
+
+**Solutions**:
+Use docker compose manually to stop all services.
+```bash
+cd docker
+docker compose stop
+```
+
 ## Problem: No Display for GUI Applications
 **Symptoms**:
 - GUI applications like RViz, Pygame, or other Qt-based tools do not open when executed from inside the container.

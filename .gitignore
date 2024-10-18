@@ -204,7 +204,7 @@ QGroundControl.AppImage
 # Allow randomly located results directories, without git tracking
 /results/
 
-utils/.config.yml
+utils/tmp
 
 # Ignore catkin and colcon build directories
 /build/

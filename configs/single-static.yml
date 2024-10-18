@@ -1,6 +1,13 @@
 # Global
 loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
 
+# Simulation modes
+# simple: run the simulator and let it run until user stops it via ctrl+c
+# integer value: run simulator for value number of iterations
+simulation_mode: simple
+
+landing_threshold: 0.1 #  in meters
+
 # Order of services here is also the order in which services are started
 services:
   carla:
@@ -11,6 +18,8 @@ services:
     include: services/env_sim.yml
   ground_station:
     include: services/ground_station.yml
+  sim_control:
+    include: services/sim_control.yml
 
 # Test
 map: Town02_Opt

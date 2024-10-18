@@ -51,7 +51,4 @@
 	<!-- Target point ROS node -->
 	<node pkg="rraaa" type="node_target.py" name="target" output="screen"/>
 
-	<!-- Metric recorder ROS node -->
-	<node pkg="rraaa" type="node_metrics.py" name="metric_tracker" output="screen"/>
-
 </launch>

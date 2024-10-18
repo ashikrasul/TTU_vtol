@@ -111,7 +111,6 @@ class Environment():
             self.spectator.set_transform(transform)
 
     def spawn_ego_vehicle(self):
-        log.error(f"{self.config['ego_vehicle']['model']}")
         ego_bp = self.world.get_blueprint_library().filter(self.config['ego_vehicle']['model'])[0]
         ego_bp.set_attribute('role_name','ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
