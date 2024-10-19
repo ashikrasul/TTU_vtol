@@ -28,7 +28,6 @@ services:
             - /etc/localtime:/etc/localtime
             - /etc/timezone:/etc/timezone
             - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
-        restart: always
         deploy:
           resources:
             reservations:
@@ -55,7 +54,7 @@ services:
     tty: true
     stdin_open: true
     depends_on:
-      - roscore    
+      - roscore
     working_dir: /catkin_ws/src/env_sim
 
   sim_control:
@@ -109,7 +108,7 @@ services:
     stdin_open: true
     depends_on:
       - roscore
-    working_dir: /catkin_ws/src/yolov5    
+    working_dir: /catkin_ws/src/yolov5
 
   ground_station:
     container_name: ground_station
