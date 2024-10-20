@@ -31,9 +31,9 @@ ego_vehicle:
   include: ego_vehicle/jaxguam.yml
   debug: false
   location:
-    x: 0
-    y: 0
-    z: 100
+    x: -80
+    y: -75
+    z: 125
   velocity:
     x: 0
     y: 0
