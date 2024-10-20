@@ -47,7 +47,7 @@ class GUAM_Node(Vehicle_Node):
         self.guam_reference_sub = None
 
         logger.info("Subscribing to planner for trajectory reference...")
-        self.guam_reference_sub = rospy.Subscriber('/target/pose',
+        self.guam_reference_sub = rospy.Subscriber(config['ego_vehicle']['reference_topic'],
                                                     Twist,
                                                     self.guam_reference_callback)
         self.guam_reference_init()

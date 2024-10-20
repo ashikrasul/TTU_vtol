@@ -27,6 +27,7 @@ spectator_follows_ego_vehicle: True
 
 # Vehicle
 ego_vehicle:
+  reference_topic: /target/pose
   include: ego_vehicle/jaxguam.yml
   debug: false
   location:
