@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
+
+import argparse
+import atexit
+import carla
 import glob
+import numpy as np
 import os
+import rospy
+import signal
 import sys
+import time
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -11,19 +19,12 @@ try:
 except IndexError:
     pass
 
-import carla
-import argparse
-import time
-import numpy as np
-
 try:
     import pygame
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_q
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
-
-import rospy
 
 from tools.environment import Environment
 
@@ -33,6 +34,21 @@ from utils.config import load_yaml_file
 from utils import constants
 
 FREQ_LOW_LEVEL = 10
+
+class GracefulShutdown:
+    def __init__(self, environment):
+        self.environment = environment
+        atexit.register(self.shutdown)
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
+
+    def signal_handler(self, sig, frame):
+        self.shutdown()
+        sys.exit(0)
+
+    def shutdown(self):
+        self.environment.destroy()
+        log.info("Carla environment destroyed.")
 
 
 def run_carla_node(args, client):
@@ -44,6 +60,8 @@ def run_carla_node(args, client):
     rospy.set_param('tracking_control', False)
 
     environment = Environment(args, client, config)
+    _ = GracefulShutdown(environment)
+
 
     rospy.set_param('reset_called', False)
     rospy.set_param('episode_done', False)

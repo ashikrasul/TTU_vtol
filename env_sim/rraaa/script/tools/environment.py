@@ -1,10 +1,11 @@
-import pygame
 import carla
-import random
 import numpy as np
-
+import pygame
+import random
 import rospy
+import time
 import tf
+
 from std_msgs.msg import Float32, Bool, Header, String, Float32MultiArray, MultiArrayDimension
 from geometry_msgs.msg import PoseStamped, Twist, Vector3
 from sensor_msgs.msg import Image, CameraInfo, PointCloud2
@@ -31,7 +32,7 @@ class Environment():
         self.config = config
         self.world = client.get_world()
         # self.world = client.load_world(config['map'])
-        
+
 
         ### Setting the world ###
         self.original_settings = self.world.get_settings()
@@ -114,10 +115,10 @@ class Environment():
         ego_bp = self.world.get_blueprint_library().filter(self.config['ego_vehicle']['model'])[0]
         ego_bp.set_attribute('role_name','ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
-        
+
         # If the vehicle is MiniHawk, ensure that there is no rotation. We need it to make sure the pose processing happens correctly.
         if self.vehicle_type == 'minihawk':
-            spawn_point = carla.Transform( 
+            spawn_point = carla.Transform(
                 location=spawn_point.location,
                 rotation=carla.Rotation(
                     0,
@@ -156,8 +157,9 @@ class Environment():
         # TODO: I need to record the list of spawned vehicles into one of the above lists
         # TODO: add a config parameter to choose the vehicle (e.g. Dodge, Nissan, etc)
         if not self.config['adv_object']['enabled']:
+            self.adv_obj = None
             return
-        
+
         # Get the adversarial object's config
         adv_config = self.config['adv_object']
 
@@ -188,12 +190,12 @@ class Environment():
             pass # Nothing to do
         else:
             raise ValueError(f"Unknown pose type: {adv_config['pose']['type']}.")
-        
+
         # Spawn the adversarial object
         adv_obj = self.world.get_blueprint_library().filter("vehicle.dodge.charger_police_2020")[0]
         adv_obj = self.world.spawn_actor(
-            adv_obj, 
-            carla.Transform( 
+            adv_obj,
+            carla.Transform(
                 location=carla.Location(
                     x=x_location,
                     y=y_location,
@@ -219,6 +221,7 @@ class Environment():
         # Set some attributes. Disabling the physics simulation won't allow to move the vehicle.
         adv_obj.set_autopilot(False)
         adv_obj.set_enable_gravity(False)
+        self.adv_obj = adv_obj
 
     def start(self):
 
@@ -268,22 +271,6 @@ class Environment():
         print('RESET CALLED!')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
         self.ego_vehicle.set_transform(spawn_point)
-        return 0
-
-
-    def destroy(self):
-        print('\ndestroying %d vehicles' % len(self.vehicles_list))
-        self.client.apply_batch([carla.command.DestroyActor(x) for x in self.vehicles_list])
-        # stop walker controllers (list is [controller, actor, controller, actor ...])
-        for i in range(0, len(self.all_id), 2):
-            self.all_actors[i].stop()
-        print('\ndestroying %d walkers' % len(self.walkers_list))
-        self.spectator.destroy()
-        self.ego_vehicle.destroy()
-        print('\nego vehicle destroyed!')
-        self.client.apply_batch([carla.command.DestroyActor(x) for x in self.all_id])
-        self.world.apply_settings(self.original_settings)
-
         return 0
 
 
@@ -544,3 +531,70 @@ class Environment():
             self.all_actors[i].set_max_speed(float(walker_speed[int(i/2)]))
 
         print('spawned %d vehicles and %d walkers, press Ctrl+C to exit.' % (len(self.vehicles_list), len(self.walkers_list)))
+
+
+    def destroy(self):
+        log.trace('\nDestroying all CARLA actors')
+        try:
+            if self.camera_front:
+                self.camera_front.sensor.destroy()
+            if self.camera_left:
+                self.camera_left.sensor.destroy()
+            if self.camera_right:
+                self.camera_right.sensor.destroy()
+            if self.camera_back:
+                self.camera_back.sensor.destroy()
+            if self.camera_up:
+                self.camera_up.sensor.destroy()
+            if self.camera_down:
+                self.camera_down.sensor.destroy()
+            if self.camera_overview:
+                self.camera_overview.sensor.destroy()
+            if self.lidar_sensor:
+                self.lidar_sensor.sensor.destroy()
+            if self.collision_sensor_ego:
+                self.collision_sensor_ego.sensor.destroy()
+        except Exception as e:
+            log.error(f"Error destroying sensors: {e}")
+
+        try:
+            if self.ego_vehicle:
+                self.ego_vehicle.destroy()
+                log.trace('Ego vehicle destroyed')
+        except Exception as e:
+            log.error(f"Error destroying ego vehicle: {e}")
+
+        try:
+            if self.adv_obj:
+                self.adv_obj.destroy()
+                log.trace('Adv. object destroyed')
+        except Exception as e:
+            log.error(f"Error destroying adv. object: {e}")
+
+        if self.vehicles_list:
+            self.client.apply_batch([carla.command.DestroyActor(vehicle) for vehicle in self.vehicles_list])
+            log.trace(f"Destroyed {len(self.vehicles_list)} vehicles")
+            self.vehicles_list = []
+
+        # Stop and destroy walkers
+        if self.walkers_list:
+            for i in range(0, len(self.all_id), 2):
+                try:
+                    self.all_actors[i].stop()
+                except Exception as e:
+                    log.error(f"Error stopping walker controller: {e}")
+            self.client.apply_batch([carla.command.DestroyActor(walker_id) for walker_id in self.all_id])
+            log.trace(f"Destroyed {len(self.walkers_list)} walkers")
+            self.walkers_list = []
+            self.all_id = []
+
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
+                self.client.reload_world()
+                self.client.get_world().apply_settings(self.original_settings)
+                log.info("Carla world reset successfully.")
+                break
+            except RuntimeError as e:
+                log.error(f"Attempt {attempt + 1} to reset Carla world failed: {e}")
+                time.sleep(5)

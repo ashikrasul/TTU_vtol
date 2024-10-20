@@ -57,7 +57,9 @@ class Test:
     def reset(self):
         # Write config again to accomodate any changes and clean up prior state.
         write_flattened_config(constants.merged_config_path, self.config)
-        self.containermanager.reset_all()
+        self.containermanager.stop_all()
+        self.containermanager.start_all()
+        self.containermanager.run_all()
 
     def run_once(self):
         self.containermanager.start_all()
@@ -80,7 +82,7 @@ class Test:
                 log.info("Starting Iteration", iter + 2)
                 self.reset()
             else:
-                self.containermanager.terminate_all()
+                self.containermanager.stop_all()
 
     def run(self):
         mode = self.config['simulation_mode']

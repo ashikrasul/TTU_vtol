@@ -36,7 +36,7 @@ class SimControl:
 
         self.pose = msg
         if self.pose_is_within_threshold():
-            log.info("Landing target reached.")
+            log.success("Landing target reached.")
             self.target_reached = True
         else:
             log.trace("Landing target not reached.")

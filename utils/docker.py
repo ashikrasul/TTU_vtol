@@ -14,7 +14,7 @@ class DockerContainer:
 
         try:
             self.start_delay = service_config['start_delay']
-        except KeyError:
+        except (KeyError, TypeError):
             self.start_delay = 0
 
     def _run_compose_command(self, command, background = False):
@@ -63,15 +63,15 @@ class DockerContainer:
                     process.terminate()
 
                 if terminated:
-                    log.trace(f"Terminated process PID: {process.pid}")
+                    log.trace(f"Terminated process using SIGINT PID: {process.pid}, Service: {self.service_name}")
                     continue
 
                 try:
                     process.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    log.warning(f"Force killed process PID: {process.pid}")
-                log.trace(f"Terminated process PID: {process.pid}")
+                    log.warning(f"Force killed process PID: {process.pid}, Service: {self.service_name}")
+                log.trace(f"Terminated process PID: {process.pid}, Service: {self.service_name}")
 
 
 class ROSContainer(DockerContainer):
@@ -79,7 +79,7 @@ class ROSContainer(DockerContainer):
         super().__init__(service_name, compose_file, service_config)
         self.workspace_path = service_config['ros']['workspace']
         self.ros_package = service_config['ros']['ros_package']
-        
+
         try:
             self.launch_file = service_config['ros']['launch_file']
         except KeyError:
@@ -133,6 +133,7 @@ class ContainerManager:
                     self.run_command_on_host(command.split(' '))
             except KeyError:
                 pass
+        self.roscore = DockerContainer(service_name='roscore', compose_file=compose_file, service_config=None)
 
     def _load_containers(self):
         for service_name, service_config in self.config.items():
@@ -157,7 +158,7 @@ class ContainerManager:
         log.info("Stopping all containers.")
         for container in self.containers:
             if isinstance(container, ROSContainer):
-                container.terminate_all()            
+                container.terminate_all()
             container.stop_service()
 
     def build_all_workspaces(self):
