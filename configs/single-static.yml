@@ -23,7 +23,7 @@ services:
 
 # Test
 map: Town02_Opt
-spectator_follows_ego_vehicle: True
+spectator_follows_ego_vehicle: False
 
 # Vehicle
 ego_vehicle:
@@ -39,27 +39,42 @@ ego_vehicle:
     y: 0
     z: 0
 
-# Adversarial object
-adv_object:
+# Adversarial objects
+adv_objects:
   enabled: True # One of ["True", "False"]
-  pose:
-    type: relative # One of ["absolute", "relative"]. If "relative", then relative to the starting pose of the ego vehicle.
-    location:
-      x: 0
-      y: 0
-      z: -20
-    rotation:
-      roll: 0
-      pitch: 0
-      yaw: 0
-  velocity:
-    x: 0
-    y: 0
-    z: 0
+  objects:
+    - pose:
+        type: relative # One of ["absolute", "relative"]. If "relative", then relative to the starting pose of the ego vehicle.
+        location:
+          x: 0
+          y: 0
+          z: -20
+        rotation:
+          roll: 0
+          pitch: 0
+          yaw: 0
+      velocity:
+        x: 0
+        y: 0
+        z: 0
+    - pose:
+        type: relative # One of ["absolute", "relative"]. If "relative", then relative to the starting pose of the ego vehicle.
+        location:
+          x: 0
+          y: 0
+          z: -50
+        rotation:
+          roll: 0
+          pitch: 0
+          yaw: 0
+      velocity:
+        x: 0
+        y: 0
+        z: 0
 
 # Target point
 target:
   type: relative # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location.
-  x: 0
-  y: 0
+  x: 80
+  y: 75
   z: -100

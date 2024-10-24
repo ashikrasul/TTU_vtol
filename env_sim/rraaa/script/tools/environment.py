@@ -153,16 +153,7 @@ class Environment():
         # self.world.tick()
         self.update_spectator()
 
-    def spawn_adversarial_object(self):
-        # TODO: I need to record the list of spawned vehicles into one of the above lists
-        # TODO: add a config parameter to choose the vehicle (e.g. Dodge, Nissan, etc)
-        if not self.config['adv_object']['enabled']:
-            self.adv_obj = None
-            return
-
-        # Get the adversarial object's config
-        adv_config = self.config['adv_object']
-
+    def spawn_adversarial_object(self, adv_config):
         # Get the initial coordinates
         pose_init   = adv_config['pose']
         x_location  = pose_init['location']['x']
@@ -180,12 +171,12 @@ class Environment():
 
         # Add ego vehicle's coordinates if necessary
         if adv_config['pose']['type'] == 'relative':
-            x_location  += self.ego_vehicle.get_transform().location.x
-            y_location  += self.ego_vehicle.get_transform().location.y
-            z_location  += self.ego_vehicle.get_transform().location.z
-            roll_angle  += self.ego_vehicle.get_transform().rotation.roll
-            pitch_angle += self.ego_vehicle.get_transform().rotation.pitch
-            yaw_angle   += self.ego_vehicle.get_transform().rotation.yaw
+            x_location  += self.config['ego_vehicle']['location']['x']
+            y_location  += self.config['ego_vehicle']['location']['y']
+            z_location  += self.config['ego_vehicle']['location']['z']
+            # roll_angle  += self.ego_vehicle.get_transform().rotation.roll
+            # pitch_angle += self.ego_vehicle.get_transform().rotation.pitch
+            # yaw_angle   += self.ego_vehicle.get_transform().rotation.yaw
         elif adv_config['pose']['type'] == 'absolute':
             pass # Nothing to do
         else:
@@ -223,6 +214,18 @@ class Environment():
         adv_obj.set_enable_gravity(False)
         self.adv_obj = adv_obj
 
+    def spawn_adversarial_objects(self):
+        # TODO: I need to record the list of spawned vehicles into one of the above lists
+        # TODO: add a config parameter to choose the vehicle (e.g. Dodge, Nissan, etc)
+        # Check if adversarial objects are enabled
+        if not self.config['adv_objects']['enabled']:
+            self.adv_obj = None
+            return
+        
+        # Spawn the adversarial objects
+        for adv_obj in self.config['adv_objects']['objects']:
+            self.spawn_adversarial_object(adv_obj)
+
     def start(self):
 
         self.vehicles_list = []
@@ -234,7 +237,7 @@ class Environment():
         self.generate_traffic()
 
         ### spawn the adversarial object ###
-        self.spawn_adversarial_object()
+        self.spawn_adversarial_objects()
 
         ### sensor initialization ###
         self.camera_front= SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=2,  z=1.5), carla.Rotation(yaw=+00, pitch=-10)),
@@ -288,8 +291,10 @@ class Environment():
 
         ### Overrisde the pose, i.e., transform ###
         transform = self.ego_vehicle.get_transform()
-        matlab_location = carla.Location(X, -Y, Z) # CARLA uses the Unreal Engine coordinates system. This is a Z-up left-handed system.
-        # transform.location = matlab_location + self.initial_transform.location # NOTE: this line was causing incorrect behaviour in CARLA, because the vehicle was offset WRT CARLA coordinates
+        # NOTE: the 2 lines below were causing incorrect behaviour in CARLA, because the vehicle was offset WRT CARLA coordinates
+        # matlab_location = carla.Location(X, -Y, Z) # CARLA uses the Unreal Engine coordinates system. This is a Z-up left-handed system.
+        # transform.location = matlab_location + self.initial_transform.location 
+        matlab_location = carla.Location(X, Y, Z) # CARLA uses the Unreal Engine coordinates system. This is a Z-up left-handed system.
         transform.location = matlab_location
         matlab_rotation = carla.Rotation(rad2deg(-pitch), rad2deg(-yaw), rad2deg(roll))  # The constructor method follows a specific order of declaration: (pitch, yaw, roll), which corresponds to (Y-rotation,Z-rotation,X-rotation).
         transform.rotation = add_carla_rotations(matlab_rotation, self.initial_transform.rotation)
