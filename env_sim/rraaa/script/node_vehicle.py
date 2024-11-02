@@ -26,8 +26,9 @@ class MiniHawk_Node(Vehicle_Node):
             Receive pose data from the Gazebo simulation, and publish it to the CARLA pose topic.
             """
             # Set the location
+            # NOTE: I introduced a "-" sign at the Y-coordinate on Oct-27-2024, because the Y-axis was flipped.
             self.vehicle_pose_msg.pose.position.x = pose_data.pose.position.x
-            self.vehicle_pose_msg.pose.position.y = pose_data.pose.position.y
+            self.vehicle_pose_msg.pose.position.y = -pose_data.pose.position.y
             self.vehicle_pose_msg.pose.position.z = pose_data.pose.position.z
 
             # Set the orientation

@@ -183,7 +183,7 @@ class Environment():
             raise ValueError(f"Unknown pose type: {adv_config['pose']['type']}.")
 
         # Spawn the adversarial object
-        adv_obj = self.world.get_blueprint_library().filter("vehicle.dodge.charger_police_2020")[0]
+        adv_obj = self.world.get_blueprint_library().filter(adv_config['model'])[0]
         adv_obj = self.world.spawn_actor(
             adv_obj,
             carla.Transform(
