@@ -7,16 +7,23 @@ from loguru import logger as log
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import constants
-
+from utils.logging import set_logger
 
 def load_yaml_file(file_path):
     if not os.path.exists(file_path):
         log.error(f"File not found: {file_path}")
         raise FileNotFoundError(f"File not found: {file_path}")
-    
+
     log.trace(f"Loading YAML file: {file_path}")
     with open(file_path, 'r') as file:
-        return yaml.safe_load(file)
+        config = yaml.safe_load(file)
+
+    try:
+        set_logger(config['loglevel'])
+    except KeyError:
+        pass
+
+    return config
 
 def write_shared_tmp_file(file_name, data):
     directory = os.path.dirname(constants.merged_config_path)
