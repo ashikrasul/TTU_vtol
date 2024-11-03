@@ -317,7 +317,7 @@ class Environment():
     def publish_lidar(self):
         header = Header()
         header.frame_id = 'sensor'
-        if self.lidar_sensor.data is not None:
+        if self.lidar_sensor is not None and self.lidar_sensor.data is not None:
             points = np.array(self.lidar_sensor.data[:,:3])
             points[:, 1] = -points[:, 1]
             self.pub_lidar_point_cloud.publish(pcl2.create_cloud_xyz32(header,points))
