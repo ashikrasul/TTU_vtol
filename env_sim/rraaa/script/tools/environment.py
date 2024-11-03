@@ -293,7 +293,7 @@ class Environment():
         transform = self.ego_vehicle.get_transform()
         # NOTE: the 2 lines below were causing incorrect behaviour in CARLA, because the vehicle was offset WRT CARLA coordinates
         # matlab_location = carla.Location(X, -Y, Z) # CARLA uses the Unreal Engine coordinates system. This is a Z-up left-handed system.
-        # transform.location = matlab_location + self.initial_transform.location 
+        # transform.location = matlab_location + self.initial_transform.location
         matlab_location = carla.Location(X, Y, Z) # CARLA uses the Unreal Engine coordinates system. This is a Z-up left-handed system.
         transform.location = matlab_location
         matlab_rotation = carla.Rotation(rad2deg(-pitch), rad2deg(-yaw), rad2deg(roll))  # The constructor method follows a specific order of declaration: (pitch, yaw, roll), which corresponds to (Y-rotation,Z-rotation,X-rotation).
