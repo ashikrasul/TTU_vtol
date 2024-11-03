@@ -161,6 +161,11 @@ class ContainerManager:
                 container.terminate_all()
             container.stop_service()
 
+        # After the elegant stop above, bture force stop all running services,
+        # even those started implicitly, e.g. roscore
+        stop_command = ['docker', 'compose', '-f', self.compose_file, 'stop']
+        subprocess.run(stop_command, check=True, text=True)
+
     def build_all_workspaces(self):
         log.info("Building all ROS workspaces.")
         for container in self.containers:
@@ -188,9 +193,9 @@ class ContainerManager:
             container.wait_for_all()
 
     def terminate_all(self):
+        log.info("Terminating running processes in all containers.")
         for container in self.containers:
             container.terminate_all()
-
 
     def run_command_on_host(self, command):
         try:
