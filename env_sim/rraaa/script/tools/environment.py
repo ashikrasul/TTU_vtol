@@ -105,11 +105,20 @@ class Environment():
         return 0
 
     def update_spectator(self):
-        if self.config['spectator_follows_ego_vehicle']:
-            transform = carla.Transform(self.ego_vehicle.get_transform().transform(
-                                        carla.Location(x=-10, y=0, z=4)),
-                                        carla.Rotation(pitch=-20))
-            self.spectator.set_transform(transform)
+        try:
+            if self.config['spectator_follows_ego_vehicle'] == False:
+                return
+        except KeyError:
+            log.info("spectator_follows_ego_vehicle not found in config, skipping spectator update.")
+            return
+
+        vehicle_transform = self.ego_vehicle.get_transform()
+        relative_location = vehicle_transform.location + vehicle_transform.get_forward_vector() * (-20)
+        relative_location.z += 10
+
+        transform = carla.Transform(carla.Location(relative_location), carla.Rotation(pitch=-30, yaw=180))
+        self.spectator.set_transform(transform)
+
 
     def spawn_ego_vehicle(self):
         ego_bp = self.world.get_blueprint_library().filter(self.config['ego_vehicle']['model'])[0]
@@ -221,7 +230,7 @@ class Environment():
         if not self.config['adv_objects']['enabled']:
             self.adv_obj = None
             return
-        
+
         # Spawn the adversarial objects
         for adv_obj in self.config['adv_objects']['objects']:
             self.spawn_adversarial_object(adv_obj)
