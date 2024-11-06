@@ -1,6 +1,10 @@
 # Global
 loglevel: TRACE # One of ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
 
+# The topics recorded are defined in sim_control/script/node_recorder.py
+# Final rosbag is in utils/tmp
+record_rosbag: false
+
 # Simulation modes
 # simple: run the simulator and let it run until user stops it via ctrl+c
 # integer value: run simulator for value number of iterations
