@@ -6,9 +6,9 @@
   www.ros.org/wiki/octomap_server for details
 -->
 <launch>
-	
+
 	<node pkg="rraaa" type="node_carla.py" name="carla_node" output="screen" />
-	
+
 
 	<node pkg="rraaa" type="node_input_display.py" name="display_node" output="screen" />
 
@@ -49,6 +49,6 @@
 	<!-- <node pkg="rraaa" type="node_static_landing_planner.py" name="planner" output="screen" /> -->
 
 	<!-- Target point ROS node -->
-	<node pkg="rraaa" type="node_target.py" name="target" output="screen"/>
+	<!-- <node pkg="rraaa" type="node_target.py" name="target" output="screen"/> -->
 
 </launch>
