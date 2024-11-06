@@ -26,7 +26,7 @@ def main():
     target_point = Twist()
 
     # Load {x,y,z} from the config file
-    config = load_yaml_file(constants.merged_config_path)
+    config = load_yaml_file(constants.merged_config_path, __file__)
     target_type = config['target']['type']
     x = config['target']['x']
     y = config['target']['y']

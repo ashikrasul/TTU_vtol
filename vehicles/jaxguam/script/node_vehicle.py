@@ -171,7 +171,7 @@ class GUAM_Node(Vehicle_Node):
             simulate_batch(self, b_state)
 
 if __name__ == "__main__":
-    config = load_yaml_file(constants.merged_config_path)
+    config = load_yaml_file(constants.merged_config_path, __file__)
 
     vehicle_type = config['ego_vehicle']['type']
     assert vehicle_type == 'jaxguam', "This node only supports JaxGUAM vehicle, remove jaxguam service from config."

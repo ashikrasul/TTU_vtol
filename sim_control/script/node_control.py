@@ -15,10 +15,9 @@ from utils import constants
 
 class SimControl:
     def __init__(self) -> None:
-        self.config = load_yaml_file(constants.merged_config_path)
+        self.config = load_yaml_file(constants.merged_config_path, __file__)
 
-        # Initialize the ROS node
-        rospy.init_node("metric_tracker")
+        rospy.init_node("sim_control")
         self.rate = rospy.Rate(constants.frequency_low)
 
         # Pose & target pose

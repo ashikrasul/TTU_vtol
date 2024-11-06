@@ -43,6 +43,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - DISPLAY=${DISPLAY}
+      - SERVICE_NAME=env_sim
     volumes:
         - /tmp/.X11-unix:/tmp/.X11-unix:rw
         - ../env_sim:/catkin_ws/src/env_sim
@@ -72,6 +73,8 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/sim_control
+    environment:
+      - SERVICE_NAME=sim_control
 
   jaxguam:
     container_name: jaxguam
@@ -90,6 +93,8 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/jax_guam
+    environment:
+      - SERVICE_NAME=jaxguam
 
   yolov5:
     container_name: yolov5
@@ -109,6 +114,8 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/yolov5
+    environment:
+      - SERVICE_NAME=yolov5
 
   ground_station:
     container_name: ground_station
@@ -127,3 +134,5 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/ground_station
+    environment:
+      - SERVICE_NAME=ground_station

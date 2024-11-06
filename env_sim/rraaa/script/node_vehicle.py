@@ -42,10 +42,10 @@ class MiniHawk_Node(Vehicle_Node):
             self.vehicle_pose_msg.pose.orientation.z = x
             self.vehicle_pose_msg.pose.orientation.w = w
             self.vehicle_pose_pub.publish(self.vehicle_pose_msg)
-        
+
         def simulate():
             rospy.spin()
-        
+
         # Subscribe to the ROS topic which publishes the pose
         pose_processor = ft.partial(pose_processor, self)
         rospy.Subscriber(
@@ -58,7 +58,7 @@ class MiniHawk_Node(Vehicle_Node):
         simulate()
 
 if __name__ == "__main__":
-    config = load_yaml_file(constants.merged_config_path)
+    config = load_yaml_file(constants.merged_config_path, __file__)
 
     vehicle_type = config['ego_vehicle']['type']
     if vehicle_type == 'minihawk':

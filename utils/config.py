@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import constants
 from utils.logging import set_logger
 
-def load_yaml_file(file_path):
+def load_yaml_file(file_path, file_name=None):
     if not os.path.exists(file_path):
         log.error(f"File not found: {file_path}")
         raise FileNotFoundError(f"File not found: {file_path}")
@@ -19,7 +19,7 @@ def load_yaml_file(file_path):
         config = yaml.safe_load(file)
 
     try:
-        set_logger(config['loglevel'])
+        set_logger(config['loglevel'], file_name)
     except KeyError:
         pass
 

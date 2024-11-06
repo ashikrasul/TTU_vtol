@@ -53,7 +53,7 @@ class GracefulShutdown:
 
 def run_carla_node(args, client):
     pygame.init()
-    config = load_yaml_file(constants.merged_config_path)
+    config = load_yaml_file(constants.merged_config_path, __file__)
 
     # rosnode node initialization
     rospy.init_node('carla_node')
