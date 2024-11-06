@@ -110,7 +110,8 @@ class ROSContainer(DockerContainer):
         if self.launch_file:
             self.roslaunch(self.launch_file)
         elif self.rosrun_files:
-            self.rosrun(" ".join(self.rosrun_files))
+            for script in self.rosrun_files:
+                self.rosrun(script)
         else:
             log.error(f"No files to launch or run in {self.service_name}")
 
