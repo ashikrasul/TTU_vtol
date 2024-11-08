@@ -1,7 +1,7 @@
 import os
 
 
-frequency_low = 0.5
+frequency_low = 1
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 compose_file = os.path.join(base_dir, "../docker/docker-compose.yml")

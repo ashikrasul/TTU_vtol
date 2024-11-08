@@ -38,7 +38,8 @@ class SimControl:
             log.success("Landing target reached.")
             self.target_reached = True
         else:
-            log.trace("Landing target not reached.")
+            return 
+            # log.trace("Landing target not reached.")
 
         self.target_reached_pub.publish(self.target_reached)
         write_shared_tmp_file(constants.landing_target_reached_file, self.target_reached)
