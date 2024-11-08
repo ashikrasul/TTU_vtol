@@ -22,7 +22,7 @@ class PoseListener:
 def main():
     pub = rospy.Publisher('/target/pose', Twist, queue_size=10)
     rospy.init_node('target')
-    r = rospy.Rate(10) # 10hz
+    r = rospy.Rate(1) # 10hz
     target_point = Twist()
 
     # Load {x,y,z} from the config file

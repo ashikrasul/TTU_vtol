@@ -24,6 +24,8 @@ services:
     include: services/ground_station.yml
   sim_control:
     include: services/sim_control.yml
+  yolov5:
+    include: services/yolov5.yml
 
 # Test
 map: Town02_Opt

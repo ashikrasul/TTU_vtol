@@ -3,10 +3,11 @@
 import rospy
 
 from std_msgs.msg import Float32, Bool, Header, String, Float32MultiArray, MultiArrayDimension
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Pose, PoseStamped
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import numpy as np
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import argparse
 
 try:
@@ -50,21 +51,48 @@ class InfoTextManager(object):
 
         rospy.Subscriber('/carla_node/world_state', Float32MultiArray, self.callback_world_state)
         self.df_world_state = None
+        rospy.Subscriber('/carla_node/vehicles_state', Float32MultiArray, self.callback_vehicle_state)
+        self.df_world_state = None
+        rospy.Subscriber('/guam/pose', PoseStamped, self.callback_guam_pose)
+        self.pose_guam_xyz = None
+        self.pose_guam_euler_ypr = None        
 
     def callback_world_state(self, msg):
 
         self.df_world_state = pack_df_from_multiarray_msg(msg)
 
+    def callback_vehicle_state(self, msg):
+        self.df_vehicle_state = pack_df_from_multiarray_msg(msg)
+
+    def callback_guam_pose(self, msg):
+        self.pose_guam_xyz = np.array([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
+        # msg.pose.orientation.x
+        # msg.pose.orientation.y
+        # msg.pose.orientation.z
+        # msg.pose.orientation.w
+        quaternion = (
+            msg.pose.orientation.x,
+            msg.pose.orientation.y,
+            msg.pose.orientation.z,
+            msg.pose.orientation.w)
+        (yaw, pitch, roll) = euler_from_quaternion(quaternion) # unit rad
+        self.pose_guam_euler_ypr = np.array([yaw*180/np.pi, pitch*180/np.pi, roll*180/np.pi])
+
 
     def tick(self):
 
-        if self.df_world_state is not None:
+        if self.df_world_state is not None and self.df_vehicle_state is not None and self.pose_guam_xyz is not None:
 
             self.info_text = [
                 '',
                 '   Sever:  % 2.1f FPS'  % (self.df_world_state.loc['world']['server_fps']),
                 '',
                 '   Client: % 2.1f FPS'  % (self.df_world_state.loc['world']['client_fps']),
+                '',
+                '   CARLA LinPosXYZ: % 2.1f;  % 2.1f;  % 2.1f; '  % (self.df_vehicle_state.loc['ego_vehicle']['x'], self.df_vehicle_state.loc['ego_vehicle']['y'], self.df_vehicle_state.loc['ego_vehicle']['z']),
+                '   CARLA AngPosXYZ: % 2.1f;  % 2.1f;  % 2.1f; '  % (self.df_vehicle_state.loc['ego_vehicle']['yaw'], self.df_vehicle_state.loc['ego_vehicle']['pitch'], self.df_vehicle_state.loc['ego_vehicle']['roll']),
+                '   GUAM LinPosXYZ: % 2.1f;  % 2.1f;  % 2.1f; '  % (self.pose_guam_xyz[0], self.pose_guam_xyz[1], self.pose_guam_xyz[2]),
+                '   GUAM AngPosXYZ: % 2.1f;  % 2.1f;  % 2.1f; '  % (self.pose_guam_euler_ypr[0], self.pose_guam_euler_ypr[1], self.pose_guam_euler_ypr[2]),
                 ]
 
             self.surface = pygame.Surface(self.display_man.get_display_size())
@@ -138,13 +166,15 @@ def run_input_node(args):
     # Getting the world and
     display_man = DisplayManager(grid_size=[3, 5], window_size=[args.width, args.height])
 
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_overview/image_raw'}, display_pos=[0, 2], display_scale=1)
+    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_overview/image_raw'}, display_pos=[0, 4], display_scale=1)
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_front/image_raw'}, display_pos=[1, 3])
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_left/image_raw'}, display_pos=[1, 2])
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_right/image_raw'}, display_pos=[1, 4])
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_back/image_raw'}, display_pos=[2, 3])
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_up/image_raw'}, display_pos=[0, 3])
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_down/image_raw'}, display_pos=[0, 4])
+    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_down/image_raw'}, display_pos=[0, 2])
+    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/yolo_node/sort_mot_frame'}, display_pos=[0, 0])
+    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/yolo_node/yolo_pred_frame'}, display_pos=[0, 1])
 
     map_listen_renderer = ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/path_planner/map_image'}, display_pos=[0, 0], display_scale=2)
 
@@ -181,9 +211,9 @@ def run_input_node(args):
         twist_msg.linear.y = input_control._lateral_move_cmd
         twist_msg.linear.z = input_control._vertical_move_cmd
 
-        twist_msg.angular.x = input_control._pitch_rate_cmd
-        twist_msg.angular.y = input_control._roll_rate_cmd
-        twist_msg.angular.z = input_control._yaw_rate_cmd
+        twist_msg.angular.x = input_control._pitch_rate_cmd*.2
+        twist_msg.angular.y = input_control._roll_rate_cmd*0.2
+        twist_msg.angular.z = input_control._yaw_rate_cmd*0.2
 
         pub_control_state.publish(twist_msg)
 

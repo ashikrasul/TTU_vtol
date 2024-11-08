@@ -104,7 +104,7 @@ services:
     volumes:
         - ../perception/yolov5:/catkin_ws/src/yolov5
         - ../utils:/catkin_ws/src/yolov5/script/utils
-        - ../perception/yolov5/yolov5s.pt:/catkin_ws/yolo_param/yolov5s.pt
+        - ../perception/yolov5/yolo_ashik.pt:/catkin_ws/src/yolov5/yolo_ashik.pt
     privileged: true
     network_mode: host
     devices:
@@ -114,6 +114,7 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/yolov5
+    #command: rosrun yolov5 node_yolo.py
     environment:
       - SERVICE_NAME=yolov5
 
