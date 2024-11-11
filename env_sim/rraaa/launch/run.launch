@@ -43,7 +43,7 @@
 	<param name="vehicle" type="string" value="$(arg vehicle)"/>
 	<param name="/$(arg vehicle)/plot" type="bool" value="False"/>
 	<param name="/$(arg vehicle)/save_video" type="bool" value="False"/>
-	<node pkg="rraaa" type="node_vehicle.py" name="$(arg vehicle)" output="screen" />
+	<!-- <node pkg="rraaa" type="node_vehicle.py" name="$(arg vehicle)" output="screen" /> -->
 
 	<!-- Planner parameters -->
 	<!-- <node pkg="rraaa" type="node_static_landing_planner.py" name="planner" output="screen" /> -->
