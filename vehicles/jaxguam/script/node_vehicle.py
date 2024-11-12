@@ -11,6 +11,7 @@ from loguru import logger
 from geometry_msgs.msg import Pose, PoseStamped
 from trajectory_msgs.msg import JointTrajectoryPoint
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Float32MultiArray
 
 import jax
 import jax.random as jr
@@ -47,8 +48,8 @@ class GUAM_Node(Vehicle_Node):
         self.guam_reference_sub = None
 
         logger.info("Subscribing to planner for trajectory reference...")
-        self.guam_reference_sub = rospy.Subscriber(config['ego_vehicle']['reference_topic'],
-                                                    Twist,
+        self.guam_reference_sub = rospy.Subscriber(config['ego_vehicle']['planner_topic'],
+                                                    Float32MultiArray,
                                                     self.guam_reference_callback)
         self.guam_reference_init()
         while self.guam_reference is None:
@@ -69,8 +70,10 @@ class GUAM_Node(Vehicle_Node):
 
     def guam_reference_callback(self, msg):
         # convert meter to feet
-        pos_des = jnp.array([msg.linear.x, msg.linear.y, msg.linear.z]) * jnp.array([3.28084, 3.28084, -3.28084])
-        vel_bIc_des = jnp.array(self.guam_reference.Vel_bIc_des) * jnp.array([3.28084, -3.28084, -3.28084])
+        # pos_des = jnp.array([msg.linear.x, msg.linear.y, msg.linear.z]) * jnp.array([3.28084, 3.28084, -3.28084])
+        # vel_bIc_des = jnp.array(self.guam_reference.Vel_bIc_des) * jnp.array([3.28084, -3.28084, -3.28084])
+        pos_des = jnp.array([msg.data[0], msg.data[1], msg.data[2]]) * jnp.array([3.28084, 3.28084, -3.28084])
+        vel_bIc_des = jnp.array([msg.data[3], msg.data[4], msg.data[5]]) * jnp.array([3.28084, -3.28084, -3.28084])
         chi_des = 0
         chi_dot_des = 0
         self.guam_reference = RefInputs(

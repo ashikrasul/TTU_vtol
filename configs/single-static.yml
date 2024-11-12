@@ -34,6 +34,8 @@ spectator_follows_ego_vehicle: False
 # Vehicle
 ego_vehicle:
   reference_topic: /target/pose
+  planner_topic: /target/waypoint
+  planner: a_star # One of ["simple", "a_star"]
   include: ego_vehicle/jaxguam.yml
   debug: false
   location:
