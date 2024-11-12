@@ -142,12 +142,12 @@ class PathPlanner:
         if self.config['ego_vehicle']['planner'] == 'simple':
             # Subscribe to perception topics if planner type is 'simple'
             self.perception_vel_sub = rospy.Subscriber(
-                config['perception_vel_topic'], 
+                config['ego_vehicle']['perception_vel_topic'], 
                 Twist, 
                 self.perception_vel_callback
             )
             self.perception_control_sub = rospy.Subscriber(
-                config['perception_control_topic'], 
+                config['ego_vehicle']['perception_control_topic'], 
                 Float32MultiArray, 
                 self.perception_control_callback
             )
@@ -187,8 +187,8 @@ class PathPlanner:
             - waypoints (List[np.array]): a list of numpy arrays of shape (3,), where each entry contains 3D coordinates
         """
         if self.config['ego_vehicle']['planner'] == 'simple':
-            waypoints = [end_point]
-            velocities = [0]
+            waypoints = [start_point]
+            velocities = [np.zeros(3)]
         elif self.config['ego_vehicle']['planner'] == 'a_star':
             waypoints = astar(tuple(start_point.tolist()), tuple(end_point.tolist()))
             velocities = compute_velocities([np.array(x) for x in waypoints], velocity_magnitude=0.5)
