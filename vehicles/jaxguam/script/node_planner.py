@@ -164,7 +164,7 @@ class PathPlanner:
             velocities = [0]
         elif self.config['ego_vehicle']['planner'] == 'a_star':
             waypoints = astar(tuple(start_point.tolist()), tuple(end_point.tolist()))
-            velocities = compute_velocities([np.array(x) for x in waypoints], velocity_magnitude=3)
+            velocities = compute_velocities([np.array(x) for x in waypoints], velocity_magnitude=0.1)
         else:
             raise ValueError(f"Unknown planner {self.config['ego_vehicle']['planner']}")
 
@@ -228,6 +228,8 @@ class PathPlanner:
             
             # Publish the data
             self.target_waypoint_pub.publish(message)
+
+            # rospy.loginfo(f"Publishing message: {message}")
 
             r.sleep()
     

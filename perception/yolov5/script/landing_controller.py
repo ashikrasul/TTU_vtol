@@ -62,7 +62,7 @@ if __name__=='__main__':
                 y_ctr = (y1 + y2)/2
                 size  = (x2 - x1)*(y2 - y1)/1000
 
-                print('x_ctr', x_ctr, 'y_ctr', y_ctr, 'size', size)
+                #print('x_ctr', x_ctr, 'y_ctr', y_ctr, 'size', size)
                 # -------------------------------#
                 #|             y = 0
                 #|
@@ -106,6 +106,8 @@ if __name__=='__main__':
         # pub_body_angle.publish(body_angle)
         # pub_tgt_box.publish(tgt_box)
         pub_vel_cmd.publish(vel_cmd_tracking)
+
+        rospy.loginfo(f"Publishing velocity: {vel_cmd_tracking}")
 
         # try:
         #     experiment_done_done = rospy.get_param('experiment_done')
