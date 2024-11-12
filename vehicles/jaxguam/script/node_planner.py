@@ -138,6 +138,21 @@ class PathPlanner:
         self.global_target_sub = rospy.Subscriber(config['ego_vehicle']['reference_topic'], Twist, self.global_target_callback)
         self.pose_sub = rospy.Subscriber(f"/{config['ego_vehicle']['type']}/pose", PoseStamped, self.pose_callback)
 
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         # Publish to the target waypoint topic
         self.target_waypoint_pub = rospy.Publisher('/target/waypoint', Float32MultiArray, queue_size=1)
 
@@ -164,7 +179,7 @@ class PathPlanner:
             velocities = [0]
         elif self.config['ego_vehicle']['planner'] == 'a_star':
             waypoints = astar(tuple(start_point.tolist()), tuple(end_point.tolist()))
-            velocities = compute_velocities([np.array(x) for x in waypoints], velocity_magnitude=0.1)
+            velocities = compute_velocities([np.array(x) for x in waypoints], velocity_magnitude=0.5)
         else:
             raise ValueError(f"Unknown planner {self.config['ego_vehicle']['planner']}")
 
@@ -229,7 +244,7 @@ class PathPlanner:
             # Publish the data
             self.target_waypoint_pub.publish(message)
 
-            # rospy.loginfo(f"Publishing message: {message}")
+            rospy.loginfo(f"Publishing message: {message}")
 
             r.sleep()
     
