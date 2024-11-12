@@ -139,7 +139,19 @@ class PathPlanner:
         self.pose_sub = rospy.Subscriber(f"/{config['ego_vehicle']['type']}/pose", PoseStamped, self.pose_callback)
 
         
-
+        if self.config['ego_vehicle']['planner'] == 'simple':
+            # Subscribe to perception topics if planner type is 'simple'
+            self.perception_vel_sub = rospy.Subscriber(
+                config['perception_vel_topic'], 
+                Twist, 
+                self.perception_vel_callback
+            )
+            self.perception_control_sub = rospy.Subscriber(
+                config['perception_control_topic'], 
+                Float32MultiArray, 
+                self.perception_control_callback
+            )
+            rospy.loginfo("Subscribed to perception_vel_topic and perception_control_topic")
 
 
 
@@ -275,6 +287,13 @@ class PathPlanner:
     def global_target_callback(self, data):
         pass
 
+    def perception_vel_callback(self, msg):
+        pass
+        #rospy.loginfo(f"Received velocity data: {msg}")
+
+    def perception_control_callback(self, msg):
+        pass
+        #rospy.loginfo(f"Received control data: {msg}")
 
 
 if __name__ == "__main__":
