@@ -133,7 +133,7 @@ def run_yolo_node(args):
             if len(trackers) > 0:
                 for d in trackers:
                     d = d.astype(np.int32)
-                    print('d',d)
+                    #print('d',d)
                     plot_one_box((d[0],d[1],d[2],d[3]), np_im, color=colors[1], label=str(d[4]%100))
             
             # Publish the image with the tracked detections.

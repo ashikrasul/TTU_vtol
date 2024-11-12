@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+import numpy as np
+import rospy
+
+from std_msgs.msg import Float32MultiArray        # See https://gist.github.com/jarvisschultz/7a886ed2714fac9f5226
+from geometry_msgs.msg import Vector3
+
+### ROS Subscriber Callback ###
+TRACKING_ARRAY_RECEIVED = None
+def fnc_callback(msg):
+    global TRACKING_ARRAY_RECEIVED
+    TRACKING_ARRAY_RECEIVED = msg
+
+P_gain = 0.05
+TARGET_CLASS_INDEX = 2
+FREQ_LOW_LEVEL = 10
+
+if __name__=='__main__':
+
+    # rosnode node initialization
+    rospy.init_node('controller_node')
+
+    # subscriber init.
+    sub  = rospy.Subscriber('/yolo_node/sort_mot_predictions', Float32MultiArray, fnc_callback)
+
+    # publishers init.
+    # pub_vel_est = rospy.Publisher('/controller_node/vel_est_rcvd', Vector3, queue_size=10)
+    # pub_body_angle = rospy.Publisher('/controller_node/body_angle_rcvd', Vector3, queue_size=10)
+    pub_tgt_box = rospy.Publisher('/controller_node/tgt_box_rcvd', Vector3, queue_size=10)
+    pub_vel_cmd = rospy.Publisher('/controller_node/vel_cmd', Vector3, queue_size=10)
+
+    # Running rate
+    rate=rospy.Rate(FREQ_LOW_LEVEL)
+
+    # msg init.
+    # vel_est    = Vector3()
+    # body_angle = Vector3()
+    tgt_box    = Vector3()
+    vel_cmd_tracking = Vector3()
+
+    t_step = 0
+
+    ##############################
+    ### Instructions in a loop ###
+    ##############################
+    while not rospy.is_shutdown():
+
+        t_step += 1
+
+        if TRACKING_ARRAY_RECEIVED is not None:
+
+            height = TRACKING_ARRAY_RECEIVED.layout.dim[0].size
+            width = TRACKING_ARRAY_RECEIVED.layout.dim[1].size
+            np_tracking = np.array(TRACKING_ARRAY_RECEIVED.data).reshape((height, width))
+
+            if len(np_tracking) > 0:
+                #print('tracking object')
+                the_obj = np_tracking[-1]
+                x1, y1, x2, y2 = the_obj[0:4]
+
+                x_ctr = (x1 + x2)/2
+                y_ctr = (y1 + y2)/2
+                size  = (x2 - x1)*(y2 - y1)/1000
+
+                print('x_ctr', x_ctr, 'y_ctr', y_ctr, 'size', size)
+                # -------------------------------#
+                #|             y = 0
+                #|
+                #|
+                #| x = 0      (224, 224)   x = 448
+                #|
+                #|
+                #|             y = 448
+                # -------------------------------#
+                CTR_X_POS = 224
+                CTR_Y_POS = 224
+                AREA_SIZE = 50
+
+                ### Now, make the control signal ###
+                error_x = x_ctr - CTR_X_POS
+                error_y = y_ctr - CTR_Y_POS
+                error_z = size**0.5 - (AREA_SIZE)**0.5
+
+                #print('error_x', error_x, 'error_y', error_y, 'error_z', error_z)
+
+                cmd_vx = P_gain * -error_x    # side move (left or right)
+                cmd_vy = P_gain *  error_y    # vertical move (up or down)
+                cmd_vz = 0.2 * error_z   # front move (front or backward)
+
+                cmd_vx = np.clip(cmd_vx, -1, 1)
+                cmd_vy = np.clip(cmd_vy, -1, 1)
+                cmd_vz = np.clip(cmd_vz, -1, 1)
+
+                vel_cmd_tracking.y = cmd_vx  # if target is at the right then generate positive cmd_vx
+                vel_cmd_tracking.x = cmd_vy  # if target is at the above then generate positive cmd_vy
+                vel_cmd_tracking.z = cmd_vz  # if target is small then generate positive cmd_vz
+
+            else:
+                #print('no tracked object')
+                vel_cmd_tracking.x = 0
+                vel_cmd_tracking.y = 0
+                vel_cmd_tracking.z = 0
+
+        # ### Publish ###
+        # pub_vel_est.publish(vel_est)
+        # pub_body_angle.publish(body_angle)
+        # pub_tgt_box.publish(tgt_box)
+        pub_vel_cmd.publish(vel_cmd_tracking)
+
+        # try:
+        #     experiment_done_done = rospy.get_param('experiment_done')
+        # except:
+        #     experiment_done_done = False
+
+        # if experiment_done_done and t_step > FREQ_LOW_LEVEL*3:
+        #     print('experiment_done_done')
+        #     rospy.signal_shutdown('Finished 100 Episodes!')
+
+
+        rate.sleep()
