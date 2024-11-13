@@ -188,7 +188,7 @@ class PathPlanner:
         """
         if self.config['ego_vehicle']['planner'] == 'simple':
             waypoints = [start_point]
-            velocities = [np.zeros(3)]
+            velocities = [np.ones(3)]
         elif self.config['ego_vehicle']['planner'] == 'a_star':
             waypoints = astar(tuple(start_point.tolist()), tuple(end_point.tolist()))
             velocities = compute_velocities([np.array(x) for x in waypoints], velocity_magnitude=0.5)

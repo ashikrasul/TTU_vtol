@@ -5,4 +5,4 @@ ros:
   rosrun_files:
     - node_yolo.py
     - landing_controller.py
-    #- test.py
+    - test.py
