@@ -10,9 +10,9 @@ def fnc_callback(msg):
     global TRACKING_ARRAY_RECEIVED
     TRACKING_ARRAY_RECEIVED = msg
 
-P_gain = 0.05
+P_gain = 0.04
 I_gain = 0.0001
-D_gain = 0.03
+D_gain = 0.001
 
 TARGET_CLASS_INDEX = 2
 FREQ_LOW_LEVEL = 10
@@ -93,18 +93,17 @@ if __name__ == '__main__':
                 ### PID control signals ###
                 cmd_vx = P_gain * error_x + I_gain * integral_x + D_gain * derivative_x
                 cmd_vy = P_gain * -error_y + I_gain * integral_y + D_gain * -derivative_y
-                cmd_vz = 0.1 * error_z + I_gain * integral_z + D_gain * derivative_z
-
+                cmd_vz = 0.1 * error_z
                 ### Clipping ###
-                cmd_vx = np.clip(cmd_vx, -1, 1)
-                cmd_vy = np.clip(cmd_vy, -1, 1)
-                cmd_vz = np.clip(cmd_vz, -1, 1)
+                cmd_vx = np.clip(cmd_vx, -10, 10)
+                cmd_vy = np.clip(cmd_vy, -10, 10)
+                cmd_vz = np.clip(cmd_vz, -1.5, 1.5)
 
                 vel_cmd_tracking.y = cmd_vx  # if target is at the right then generate positive cmd_vx
                 vel_cmd_tracking.x = cmd_vy  # if target is at the above then generate positive cmd_vy
                 vel_cmd_tracking.z = cmd_vz  # if target is small then generate positive cmd_vz
 
-                #print('vx', cmd_vx, 'vy', cmd_vy, 'vz', cmd_vz)
+                print('vx', cmd_vx, 'vy', cmd_vy, 'vz', cmd_vz)
 
             else:
                 vel_cmd_tracking.x = 0

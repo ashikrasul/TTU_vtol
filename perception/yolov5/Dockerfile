@@ -49,10 +49,6 @@ RUN pip3 install torch torchvision numpy pillow matplotlib ultralytics filterpy
 
 RUN mkdir -p /catkin_ws/src
 
-#COPY ../perception/yolov5 /catkin_ws/src/yolov5
-#COPY ../utils /catkin_ws/src/yolov5/script/utils
-#COPY ../perception/yolov5/yolo_ashik.pt /catkin_ws/src/yolov5/yolo_ashik.pt
-
 WORKDIR /catkin_ws
 
 # Initialize the catkin workspace

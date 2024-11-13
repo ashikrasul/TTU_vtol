@@ -1,86 +1,4 @@
-# #!/usr/bin/env python3
-
-# import rospy
-# from geometry_msgs.msg import Twist, PoseStamped
-
-# def move_along_z():
-#     # Initialize the ROS node
-#     rospy.init_node('move_along_z_node', anonymous=True)
-    
-#     # Create publishers for velocity and pose
-#     velocity_pub = rospy.Publisher('/jaxguam/velocity', Twist, queue_size=10)
-#     pose_pub = rospy.Publisher('/jaxguam/pose', PoseStamped, queue_size=10)
-    
-#     # Define the rate of publishing (10 Hz)
-#     rate = rospy.Rate(10)
-    
-#     # Initialize position
-#     initial_pose = [-80.0, 75.0, 75.0]  # Initial pose [x, y, z]
-    
-#     # Create a Twist message for velocity
-#     move_msg = Twist()
-#     move_msg.linear.x = 0.0
-#     move_msg.linear.y = 0.0
-#     move_msg.linear.z = 1.0  # Move at 1 m/s along the z-axis
-#     move_msg.angular.x = 0.0
-#     move_msg.angular.y = 0.0
-#     move_msg.angular.z = 0.0
-    
-#     # Create a PoseStamped message for pose
-#     pose_msg = PoseStamped()
-#     pose_msg.header.frame_id = "world"  # Frame of reference
-#     pose_msg.pose.position.x = initial_pose[0]
-#     pose_msg.pose.position.y = initial_pose[1]
-#     pose_msg.pose.position.z = initial_pose[2]
-#     pose_msg.pose.orientation.x = 0.0
-#     pose_msg.pose.orientation.y = 0.0
-#     pose_msg.pose.orientation.z = 0.0
-#     pose_msg.pose.orientation.w = 1.0
-    
-#     # Start time
-#     start_time = rospy.Time.now()
-#     z_target = 35.0  # Target z value
-
-#     # Publish until z value reaches the target
-#     while pose_msg.pose.position.z > z_target:
-#         # Update the z position based on velocity and time
-#         elapsed_time = (rospy.Time.now() - start_time).to_sec()
-#         pose_msg.pose.position.z = initial_pose[2] - move_msg.linear.z * elapsed_time
-        
-#         # Publish velocity and pose messages
-#         velocity_pub.publish(move_msg)
-#         pose_pub.publish(pose_msg)
-        
-#         rospy.loginfo(f"Published velocity: {move_msg}")
-#         rospy.loginfo(f"Published pose: {pose_msg}")
-        
-#         rate.sleep()
-    
-#     # Stop the robot by publishing a zero Twist message
-#     stop_msg = Twist()  # Default zero-initialized message
-#     velocity_pub.publish(stop_msg)
-    
-#     # Publish the final pose
-#     pose_pub.publish(pose_msg)
-    
-#     rospy.loginfo("Published stop command after reaching target z value.")
-#     rospy.loginfo(f"Final pose: {pose_msg}")
-
-# if __name__ == '__main__':
-#     try:
-#         move_along_z()
-#     except rospy.ROSInterruptException:
-#         pass
-
-
-
-
-
-
-
-
 #!/usr/bin/env python3
-
 import rospy
 from geometry_msgs.msg import Twist, PoseStamped, Vector3
 
@@ -106,8 +24,8 @@ class MoveAlongZNode:
         # Initialize position
         self.pose_msg = PoseStamped()
         self.pose_msg.header.frame_id = "world"  # Frame of reference
-        self.pose_msg.pose.position.x = -70.0
-        self.pose_msg.pose.position.y = 75.0
+        self.pose_msg.pose.position.x = -80.0
+        self.pose_msg.pose.position.y = 70.0
         self.pose_msg.pose.position.z = 75.0
         self.pose_msg.pose.orientation.w = 1.0  # Default orientation
         
