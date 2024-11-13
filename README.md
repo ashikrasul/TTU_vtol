@@ -32,9 +32,9 @@ Clone this repository with submodules.
 
 ```bash
 git clone https://github.com/CPS-IL/rraaa-sim.git --recurse-submodules
+cd rraaa-sim
 git switch ashikrasul
 git submodule update --init --recursive
-cd rraaa-sim
 python3 rraaa.py configs/single-static.yml
 ```
 

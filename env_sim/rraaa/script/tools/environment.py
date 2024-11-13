@@ -148,7 +148,7 @@ class Environment():
         # spawn_point.location.z = spawn_point.location.z + 100
         self.ego_vehicle = self.world.spawn_actor(ego_bp, spawn_point)
         self.ego_vehicle.set_autopilot(False)
-        self.ego_vehicle.set_simulate_physics(False)
+        self.ego_vehicle.set_simulate_physics(True)
         self.ego_vehicle.set_enable_gravity(False)
         self.control_variable = carla.VehicleControl()
         self.ego_vehicle.apply_control(self.control_variable)
