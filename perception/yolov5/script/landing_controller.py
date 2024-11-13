@@ -103,7 +103,7 @@ if __name__ == '__main__':
                 vel_cmd_tracking.x = cmd_vy  # if target is at the above then generate positive cmd_vy
                 vel_cmd_tracking.z = cmd_vz  # if target is small then generate positive cmd_vz
 
-                print('vx', cmd_vx, 'vy', cmd_vy, 'vz', cmd_vz)
+                # print('vx', cmd_vx, 'vy', cmd_vy, 'vz', cmd_vz)
 
             else:
                 vel_cmd_tracking.x = 0

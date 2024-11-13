@@ -39,13 +39,13 @@ class MoveAlongZNode:
             self.current_velocity.x = 0.0
             self.current_velocity.y = 0.0
             self.current_velocity.z = 0.0
-            rospy.loginfo("Received zero velocity message. All velocities set to zero.")
+            # rospy.loginfo("Received zero velocity message. All velocities set to zero.")
         else:
             # Otherwise, increment the velocities as usual
             self.current_velocity.x += msg.x
             self.current_velocity.y += msg.y
             self.current_velocity.z += msg.z  # Increment z velocity
-            rospy.loginfo(f"Received new velocity increment: x={msg.x}, y={msg.y}, z={msg.z}")
+            # rospy.loginfo(f"Received new velocity increment: x={msg.x}, y={msg.y}, z={msg.z}")
 
     def move(self):
         try:
@@ -65,8 +65,8 @@ class MoveAlongZNode:
                 self.velocity_pub.publish(move_msg)
                 self.pose_pub.publish(self.pose_msg)
                 
-                rospy.loginfo(f"Published velocity: {move_msg}")
-                rospy.loginfo(f"Published pose: {self.pose_msg}")
+                # rospy.loginfo(f"Published velocity: {move_msg}")
+                # rospy.loginfo(f"Published pose: {self.pose_msg}")
                 
                 self.rate.sleep()
         
