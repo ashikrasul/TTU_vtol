@@ -69,7 +69,7 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 RUN echo "source /opt/ros/${ROS_VERSION}/setup.bash" >> $HOME/.bashrc && \
      echo "source $HOME/simulator/devel/setup.bash" >> $HOME/.bashrc
 
-RUN apt install -y python3-pip &&\
+RUN apt update && apt install -y python3-pip &&\
     \
     pip install \
         extensisq \
