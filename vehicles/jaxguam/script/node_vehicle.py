@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
 
 import functools as ft
-import ipdb
 import numpy as np
+import ipdb
 import os
 import rospy
 
 from loguru import logger
-
-from geometry_msgs.msg import Pose, PoseStamped
-from trajectory_msgs.msg import JointTrajectoryPoint
-from geometry_msgs.msg import Twist, Vector3
-from std_msgs.msg import Float32MultiArray
-
-#from tf.transformations import euler_from_quaternion
-
+from geometry_msgs.msg import PoseStamped, Vector3, Twist, Pose
 
 import jax
-import jax.random as jr
 import jax.numpy as jnp
 import jax.tree_util as jtu
 from jax_guam.functional.guam_new import FuncGUAM, GuamState
@@ -25,11 +17,17 @@ from jax_guam.guam_types import RefInputs
 from jax_guam.utils.jax_utils import jax2np, jax_use_cpu, jax_use_double
 from jax_guam.utils.logging import set_logger_format
 
-from guam_plot_batch_with_ref import plot_batch_with_ref
 
+
+
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+
+
+from guam_plot_batch_with_ref import plot_batch_with_ref
 from utils.vehicle import Vehicle_Node
 from utils.config import load_yaml_file
 from utils import constants
+
 
 class GUAM_Node(Vehicle_Node):
     def __init__(self, config):
@@ -40,44 +38,36 @@ class GUAM_Node(Vehicle_Node):
         jax_use_double()
         set_logger_format()
 
-        # sim params
+        # Simulation parameters
         self.skip_sleep = config['ego_vehicle']['skip_sleep']
         self.plot_switch = config['ego_vehicle']['plot']
         self.save_video = config['ego_vehicle']['save_video']
 
-        # jax-guam related params
+        # GUAM-related parameters
         self.guam = None
         self.guam_reference = None
         self.guam_reference_sub = None
-        self.control_msg=None
+        self.control_msg = None
 
-
-        self.initial_angular_position = [0, 0, 0]
-        self.initial_angular_velocity = [0, 0, 0]
-
-        self.kk=0
-
-        self.guam_disp_velCMD_sub = rospy.Subscriber('/display_node/control_cmd',
-                                                    Twist,
-                                                    self.guam_velocity_cmd_callback)        
+        # self.vehicle_pose_msg = PoseStamped()  # Ensure vehicle_pose_msg is initialized
+        self.kk = 0
 
         logger.info("Subscribing to planner for trajectory reference...")
         self.guam_control_velCMD_sub = rospy.Subscriber(config['ego_vehicle']['planner_topic'],
-                                                    Vector3,
-                                                    self.guam_control_cmd_callback)
+                                                        Vector3,
+                                                        self.guam_velocity_cmd_callback)
 
+        self.guam_disp_velCMD_sub = rospy.Subscriber('/display_node/control_cmd',
+                                                        Twist,
+                                                        self.guam_control_cmd_callback)
         self.guam_reference_init()
-        timeout = rospy.Time.now() + rospy.Duration(5)
         while self.guam_reference is None:
-            if rospy.Time.now() > timeout:
-                logger.error("Timeout during GUAM reference initialization.")
-                raise RuntimeError("Failed to initialize GUAM reference.")
-            rospy.sleep(0.1)
+            pass
 
-    def guam_control_cmd_callback(self,msg):
+    def guam_control_cmd_callback(self, msg):
         self.control_msg=msg
 
-        
+
 
     def guam_reference_init(self):
         # adjust for guam units and frame
@@ -93,10 +83,9 @@ class GUAM_Node(Vehicle_Node):
         )
 
 
-
-
     def guam_velocity_cmd_callback(self, msg):
 
+        # initial condiiton
         if self.kk == 0:
             vel_bIc_des = self.initial_velocity
             chi_dot_des = 0
@@ -111,17 +100,17 @@ class GUAM_Node(Vehicle_Node):
 
 
             chi_dot_des = msg.angular.y*0.5
-            pos_des = np.array([self.vehicle_pose_msg.pose.position.x,
-                             self.vehicle_pose_msg.pose.position.y,
-                             self.vehicle_pose_msg.pose.position.z]) 
+            pos_des = np.array([self.guam_pose_msg.pose.position.x,
+                             self.guam_pose_msg.pose.position.y,
+                             self.guam_pose_msg.pose.position.z]) 
             pos_des +=  vel_bIc_des*0.005 #in Hz guam.dt = 0.005, so rate = 200Hz
         
             quaternion = (
-                self.vehicle_pose_msg.pose.orientation.x,
-                self.vehicle_pose_msg.pose.orientation.y,
-                self.vehicle_pose_msg.pose.orientation.z,
-                self.vehicle_pose_msg.pose.orientation.w)
-            #(yaw, pitch, roll) = euler_from_quaternion(quaternion) # unit rad
+                self.guam_pose_msg.pose.orientation.x,
+                self.guam_pose_msg.pose.orientation.y,
+                self.guam_pose_msg.pose.orientation.z,
+                self.guam_pose_msg.pose.orientation.w)
+            (yaw, pitch, roll) = euler_from_quaternion(quaternion) # unit rad
             # self.initial_angular_position[1] += chi_dot_des*0.005
             # chi_des = self.initial_angular_position[1]
             # chi_des = yaw-np.pi/2
@@ -140,109 +129,56 @@ class GUAM_Node(Vehicle_Node):
             Chi_des=chi_des,
             Chi_dot_des=chi_dot_des,
         )
-        # print('pos_des', pos_des)
-        # print('vel_bIc_des', vel_bIc_des)
-        # print('chi_des', chi_des)
-        # print('chi_dot_des', chi_dot_des)    
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    # def guam_reference_callback(self, msg):
-    #     # convert meter to feet
-    #     # pos_des = jnp.array([msg.linear.x, msg.linear.y, msg.linear.z]) * jnp.array([3.28084, 3.28084, -3.28084])
-    #     # vel_bIc_des = jnp.array(self.guam_reference.Vel_bIc_des) * jnp.array([3.28084, -3.28084, -3.28084])
-    #     pos_des = jnp.array([msg.data[0], msg.data[1], msg.data[2]]) * jnp.array([3.28084, 3.28084, -3.28084])
-    #     vel_bIc_des = jnp.array([msg.data[3], msg.data[4], msg.data[5]]) * jnp.array([3.28084, -3.28084, -3.28084])
-    #     chi_des = 0
-    #     chi_dot_des = 0
-    #     self.guam_reference = RefInputs(
-    #         Vel_bIc_des=vel_bIc_des,
-    #         Pos_des=pos_des,
-    #         Chi_des=chi_des,
-    #         Chi_dot_des=chi_dot_des,
-    #     )
+        print('pos_des', pos_des)
+        print('vel_bIc_des', vel_bIc_des)
+        print('chi_des', chi_des)
+        print('chi_dot_des', chi_dot_des)
 
     def main(self):
         logger.info("Constructing GUAM...")
         self.guam = FuncGUAM()
-        batch_size = 1 # Simulate for a single vehicle test
+        batch_size = 1  # Simulate for a single vehicle test
         state = GuamState.create()
 
-        # Assign first value of traj reference as initial guam state
-        # [   0:3  ,   3:6    ,   6:9  ,  9:13 ]
-        # [ vel_bEb, Omega_BIb, pos_bii, Q_i2b ]
-        # state.aircraft[:] = np.array([0, 0, 0, 0, 0, 0, 0, 0, -100*3.28084, 1, 0, 0, 0]) # Initial pos is z = -100 # Q1 must be 1
-        # state.aircraft[:] = np.array([0, 0, 0, 0, 0, 0, 0, 0, -0*3.28084, 1, 0, 0, 0]) # Initial pos is z = -100 # Q1 must be 1
-        state.aircraft[:] = np.array([self.guam_reference.Vel_bIc_des[0],
-                                      self.guam_reference.Vel_bIc_des[1],
-                                      self.guam_reference.Vel_bIc_des[2],
-                                      0, 0, 0,
-                                      self.guam_reference.Pos_des[0],
-                                      self.guam_reference.Pos_des[1],
-                                      self.guam_reference.Pos_des[2],
-                                      1, 0, 0, 0]) # Q1 must be 1
+        # Initialize GUAM state
+        state.aircraft[:] = np.array([
+            self.guam_reference.Vel_bIc_des[0],
+            self.guam_reference.Vel_bIc_des[1],
+            self.guam_reference.Vel_bIc_des[2],
+            0, 0, 0,
+            self.guam_reference.Pos_des[0],
+            self.guam_reference.Pos_des[1],
+            self.guam_reference.Pos_des[2],
+            1, 0, 0, 0
+        ])
 
         logger.info("Calling GUAM...")
-        b_state: GuamState = jtu.tree_map(lambda x: np.broadcast_to(x, (batch_size,) + x.shape).copy(), state)
-
-        # Perturb the initial state in the x and y directions.
-        # key0, key1 = jr.split(jr.PRNGKey(0))
-        # b_state.aircraft[:, 6] = jr.uniform(key0, (batch_size,), minval=-20.0, maxval=20.0)
-        # b_state.aircraft[:, 7] = jr.uniform(key1, (batch_size,), minval=-20.0, maxval=20.0)
+        b_state = jtu.tree_map(lambda x: np.broadcast_to(x, (batch_size,) + x.shape).copy(), state)
 
         vmap_step = jax.jit(jax.vmap(ft.partial(self.guam.step, self.guam.dt), in_axes=(0, None)))
-        loop_rate = rospy.Rate(1/self.guam.dt) #in Hz guam.dt = 0.005, so rate = 200Hz
+        loop_rate = rospy.Rate(1 / self.guam.dt)  # in Hz, guam.dt = 0.005, so rate = 200Hz
 
         def simulate_batch(self, b_state0) -> GuamState:
             b_state = b_state0
             if self.plot_switch:
                 Tb_state = [b_state0]
                 time_list = [0]
-                vel_des0 = b_state0.aircraft[0][0:3].tolist()
-                pos_des0 = b_state0.aircraft[0][6:9].tolist()
-                Ref_list = [vel_des0 + pos_des0]
-            self.kk=0
+                Ref_list = [b_state0.aircraft[0][0:3].tolist() + b_state0.aircraft[0][6:9].tolist()]
+
+            self.kk = 0
             while not rospy.is_shutdown():
                 t = self.kk * self.guam.dt
-                self.kk = self.kk + 1
+                self.kk += 1
 
                 ref_inputs = self.guam_reference
                 b_state = vmap_step(b_state, ref_inputs)
 
                 if self.plot_switch:
                     time_list.append(t)
-                    Ref_list.append(ref_inputs.Vel_bIc_des.tolist() + ref_inputs.Pos_des.tolist()) # Store vel and pos reference
+                    Ref_list.append(ref_inputs.Vel_bIc_des.tolist() + ref_inputs.Pos_des.tolist())
                     Tb_state.append(jax2np(b_state))
 
-                # Assign guam state to publisher
-                # [   0:3  ,   3:6    ,   6:9  ,  9:13 ]
-                # [ vel_bEb, Omega_BIb, pos_bii, Q_i2b ]
-                # Convert from feet to meter
-                # North East Down in Guam ==> North East Up
-                self.vehicle_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084            # North
-                self.vehicle_pose_msg.pose.position.y = b_state.aircraft[0][7] / 3.28084
-                self.vehicle_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 * -1
-                self.vehicle_pose_msg.pose.orientation.x = b_state.aircraft[0][9]
-                self.vehicle_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
-                self.vehicle_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
-                self.vehicle_pose_msg.pose.orientation.w = b_state.aircraft[0][12]
-                self.vehicle_pose_pub.publish(self.vehicle_pose_msg)
-
-                self.vehicle_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
-                self.vehicle_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
-                self.vehicle_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084 * -1
-                self.vehicle_vel_pub.publish(self.vehicle_vel_msg)
+                self.publish_state(b_state)
 
                 if self.skip_sleep == False:
                     loop_rate.sleep()
@@ -262,14 +198,26 @@ class GUAM_Node(Vehicle_Node):
         else:
             simulate_batch(self, b_state)
 
+    def publish_state(self, b_state):
+        # Convert position back to meters for publishing
+        self.guam_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084            # North
+        self.guam_pose_msg.pose.position.y = b_state.aircraft[0][7] / 3.28084
+        self.guam_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 * -1
+        self.guam_pose_msg.pose.orientation.x = b_state.aircraft[0][9]
+        self.guam_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
+        self.guam_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
+        self.guam_pose_msg.pose.orientation.w = b_state.aircraft[0][12]
+        self.guam_pose_pub.publish(self.guam_pose_msg)
+
+        self.guam_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
+        self.guam_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
+        self.guam_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084 * -1
+        self.guam_vel_pub.publish(self.guam_vel_msg)
+
 if __name__ == "__main__":
     config = load_yaml_file(constants.merged_config_path, __file__)
-
-
-
     vehicle_type = config['ego_vehicle']['type']
-    assert vehicle_type == 'jaxguam', "This node only supports JaxGUAM vehicle, remove jaxguam service from config."
-  
+    assert vehicle_type == 'jaxguam', "This node only supports JaxGUAM vehicle."
 
     if config['ego_vehicle']['debug']:
         with ipdb.launch_ipdb_on_exception():
@@ -279,6 +227,6 @@ if __name__ == "__main__":
         guam_node = GUAM_Node(config)
         guam_node.main()
 
-    if vehicle_type == 'guam' and config['ego_vehicle']['plot']:
-        logger.info("Ploting...")
+    if vehicle_type == 'jaxguam' and config['ego_vehicle']['plot']:
+        logger.info("Plotting...")
         plot_batch_with_ref(save_video=config['ego_vehicle']['save_video'])
