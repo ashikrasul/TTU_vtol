@@ -53,7 +53,7 @@ class InfoTextManager(object):
         self.df_world_state = None
         rospy.Subscriber('/carla_node/vehicles_state', Float32MultiArray, self.callback_vehicle_state)
         self.df_world_state = None
-        rospy.Subscriber('/guam/pose', PoseStamped, self.callback_guam_pose)
+        rospy.Subscriber('/jaxguam/pose', PoseStamped, self.callback_guam_pose)
         self.pose_guam_xyz = None
         self.pose_guam_euler_ypr = None        
 
