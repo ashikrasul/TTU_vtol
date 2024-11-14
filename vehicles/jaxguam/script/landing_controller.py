@@ -10,9 +10,9 @@ def fnc_callback(msg):
     global TRACKING_ARRAY_RECEIVED
     TRACKING_ARRAY_RECEIVED = msg
 
-P_gain = 0.04
-I_gain = 0.0001
-D_gain = 0.001
+P_gain = 0.05
+I_gain = 0.000
+D_gain = 0.00
 
 TARGET_CLASS_INDEX = 2
 FREQ_LOW_LEVEL = 10
@@ -95,9 +95,9 @@ if __name__ == '__main__':
                 cmd_vy = P_gain * -error_y + I_gain * integral_y + D_gain * -derivative_y
                 cmd_vz = 0.1 * error_z
                 ### Clipping ###
-                cmd_vx = np.clip(cmd_vx, -10, 10)
-                cmd_vy = np.clip(cmd_vy, -10, 10)
-                cmd_vz = np.clip(cmd_vz, -1.5, 1.5)
+                cmd_vx = np.clip(cmd_vx, -1, 1)
+                cmd_vy = np.clip(cmd_vy, -1, 10)
+                cmd_vz = np.clip(cmd_vz, -1, 1)
 
                 vel_cmd_tracking.y = cmd_vx  # if target is at the right then generate positive cmd_vx
                 vel_cmd_tracking.x = cmd_vy  # if target is at the above then generate positive cmd_vy
