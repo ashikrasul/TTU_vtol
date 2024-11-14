@@ -20,8 +20,8 @@ services:
     include: services/jaxguam.yml
   env_sim:
     include: services/env_sim.yml
-  yolov5:
-    include: services/yolov5.yml
+  # yolov5:
+  #   include: services/yolov5.yml
 
 # Test
 map: Town02_Opt
