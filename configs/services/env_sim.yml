@@ -3,5 +3,5 @@ ros:
   workspace: /catkin_ws
   ros_package: rraaa
   launch_file: run.launch
-host_setup: # Commands to run on host machine
-  - xhost +local:docker
+# host_setup: # Commands to run on host machine
+#   - xhost +local:docker
