@@ -6,5 +6,7 @@ ros:
    #- node_vehicle.py  
    # - node_static_landing_planner.py
     #- node_planner.py
+  # - landing_controller.py
+  # - test.py
 
     
