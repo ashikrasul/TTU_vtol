@@ -2,12 +2,11 @@
 
 import functools as ft
 import numpy as np
-import ipdb
-import os
 import rospy
-
+import ipdb
+import argparse
 from loguru import logger
-from geometry_msgs.msg import PoseStamped, Vector3, Twist, Pose
+from geometry_msgs.msg import PoseStamped, Vector3, Twist
 
 import jax
 import jax.numpy as jnp
@@ -16,12 +15,6 @@ from jax_guam.functional.guam_new import FuncGUAM, GuamState
 from jax_guam.guam_types import RefInputs
 from jax_guam.utils.jax_utils import jax2np, jax_use_cpu, jax_use_double
 from jax_guam.utils.logging import set_logger_format
-
-
-
-
-#from tf.transformations import quaternion_from_euler, euler_from_quaternion
-
 
 from guam_plot_batch_with_ref import plot_batch_with_ref
 from utils.vehicle import Vehicle_Node
@@ -46,36 +39,24 @@ class GUAM_Node(Vehicle_Node):
         # GUAM-related parameters
         self.guam = None
         self.guam_reference = None
-        self.guam_reference_sub = None
         self.control_msg = None
-
-        # self.vehicle_pose_msg = PoseStamped()  # Ensure vehicle_pose_msg is initialized
         self.kk = 0
 
         logger.info("Subscribing to planner for trajectory reference...")
         
-        self.guam_disp_velCMD_sub = rospy.Subscriber('/display_node/control_cmd',
-                                                        Twist,
-                                                        self.guam_velocity_cmd_callback)        
+        self.guam_disp_velCMD_sub = rospy.Subscriber('/display_node/control_cmd', Twist, self.guam_velocity_cmd_callback)        
         
-        
-        
-        self.guam_control_velCMD_sub = rospy.Subscriber(config['ego_vehicle']['planner_topic'],
-                                                        Vector3,
-                                                        self.guam_control_cmd_callback)
-
+        self.guam_control_velCMD_sub = rospy.Subscriber(config['ego_vehicle']['planner_topic'], Vector3, self.guam_control_cmd_callback)
 
         self.guam_reference_init()
         while self.guam_reference is None:
             pass
 
     def guam_control_cmd_callback(self, msg):
-        self.control_msg=msg
-
-
+        self.control_msg = msg
 
     def guam_reference_init(self):
-        # adjust for guam units and frame
+        # Adjust for GUAM units and frame
         pos_des = jnp.array(self.initial_position) * jnp.array([3.28084, 3.28084, -3.28084])
         vel_bIc_des = jnp.array(self.initial_velocity) * jnp.array([3.28084, -3.28084, -3.28084])
         chi_des = 0
@@ -87,58 +68,39 @@ class GUAM_Node(Vehicle_Node):
             Chi_dot_des=chi_dot_des,
         )
 
-
     def guam_velocity_cmd_callback(self, msg):
-
-        # initial condiiton
+        # Initial condition
         if self.kk == 0:
             vel_bIc_des = self.initial_velocity
             chi_des=0
             chi_dot_des = 0
             pos_des = self.initial_position
-            chi_des = self.initial_angular_position[1]
         # After initialization
         else:
-            vel_bIc_des = np.array([msg.linear.x, msg.linear.y, msg.linear.z])*10
+            vel_bIc_des = np.array([msg.linear.x, msg.linear.y, msg.linear.z]) * 10
             
             if self.control_msg is not None:
-                vel_bIc_des = vel_bIc_des + np.array([self.control_msg.x*-1, self.control_msg.y, self.control_msg.z])
+                vel_bIc_des += np.array([self.control_msg.x * -1, self.control_msg.y, self.control_msg.z])
 
-
-            chi_dot_des = msg.angular.y*0.5
-            pos_des = np.array([self.vehicle_pose_msg.pose.position.x,
-                             self.vehicle_pose_msg.pose.position.y,
-                             self.vehicle_pose_msg.pose.position.z]) 
-            pos_des +=  vel_bIc_des*0.005 #in Hz guam.dt = 0.005, so rate = 200Hz
+            pos_des = np.array([
+                self.vehicle_pose_msg.pose.position.x,
+                self.vehicle_pose_msg.pose.position.y,
+                self.vehicle_pose_msg.pose.position.z
+            ]) 
+            pos_des += vel_bIc_des * 0.005  # in Hz, GUAM's dt = 0.005
         
-            # quaternion = (
-            #     self.guam_pose_msg.pose.orientation.x,
-            #     self.guam_pose_msg.pose.orientation.y,
-            #     self.guam_pose_msg.pose.orientation.z,
-            #     self.guam_pose_msg.pose.orientation.w)
-            # (yaw, pitch, roll) = euler_from_quaternion(quaternion) # unit rad
-            # self.initial_angular_position[1] += chi_dot_des*0.005
-            # chi_des = self.initial_angular_position[1]
-            # chi_des = yaw-np.pi/2
-            # chi_des += chi_dot_des*0.005
-            chi_des = 0
+            chi_des= 0
             chi_dot_des = 0
 
-        # convert meter to feet
+        # Convert meters to feet
         pos_des = jnp.array(pos_des) * jnp.array([3.28084, 3.28084, -3.28084])
         vel_bIc_des = jnp.array(vel_bIc_des) * jnp.array([3.28084, -3.28084, -3.28084])
-        # chi_des = 0
-        # chi_dot_des = 0
         self.guam_reference = RefInputs(
             Vel_bIc_des=vel_bIc_des,
             Pos_des=pos_des,
             Chi_des=chi_des,
             Chi_dot_des=chi_dot_des,
         )
-        print('pos_des', pos_des)
-        print('vel_bIc_des', vel_bIc_des)
-        print('chi_des', chi_des)
-        print('chi_dot_des', chi_dot_des)
 
     def main(self):
         logger.info("Constructing GUAM...")
@@ -162,7 +124,7 @@ class GUAM_Node(Vehicle_Node):
         b_state = jtu.tree_map(lambda x: np.broadcast_to(x, (batch_size,) + x.shape).copy(), state)
 
         vmap_step = jax.jit(jax.vmap(ft.partial(self.guam.step, self.guam.dt), in_axes=(0, None)))
-        loop_rate = rospy.Rate(1 / self.guam.dt)  # in Hz, guam.dt = 0.005, so rate = 200Hz
+        loop_rate = rospy.Rate(1 / self.guam.dt)  # in Hz, GUAM's dt = 0.005
 
         def simulate_batch(self, b_state0) -> GuamState:
             b_state = b_state0
@@ -186,7 +148,7 @@ class GUAM_Node(Vehicle_Node):
 
                 self.publish_state(b_state)
 
-                if self.skip_sleep == False:
+                if not self.skip_sleep:
                     loop_rate.sleep()
 
             if self.plot_switch:
@@ -206,22 +168,28 @@ class GUAM_Node(Vehicle_Node):
 
     def publish_state(self, b_state):
         # Convert position back to meters for publishing
-        self.vehicle_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084            # North
+        self.vehicle_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084
         self.vehicle_pose_msg.pose.position.y = b_state.aircraft[0][7] / 3.28084
-        self.vehicle_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 *-1
+        self.vehicle_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 * -1
         self.vehicle_pose_msg.pose.orientation.x = b_state.aircraft[0][9]
         self.vehicle_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
         self.vehicle_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
         self.vehicle_pose_msg.pose.orientation.w = b_state.aircraft[0][12]
         self.vehicle_pose_pub.publish(self.vehicle_pose_msg)
 
-        self.vehicle_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
+        self.vehicle_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084
         self.vehicle_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
-        self.vehicle_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084*-1
+        self.vehicle_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084 * -1
         self.vehicle_vel_pub.publish(self.vehicle_vel_msg)
 
+
 if __name__ == "__main__":
-    config = load_yaml_file(constants.merged_config_path, __file__)
+    parser = argparse.ArgumentParser(description="Run GUAM Node with dynamic config")
+    parser.add_argument('--config', type=str, default=constants.merged_config_path, 
+                        help='Path to the configuration file')
+    args = parser.parse_args()
+
+    config = load_yaml_file(args.config, __file__)
     vehicle_type = config['ego_vehicle']['type']
     assert vehicle_type == 'jaxguam', "This node only supports JaxGUAM vehicle."
 
