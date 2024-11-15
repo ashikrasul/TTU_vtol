@@ -51,9 +51,9 @@ class MoveAlongZNode:
         try:
             while not rospy.is_shutdown() and self.pose_msg.pose.position.z > self.z_target:
                 # Update positions based on the latest velocity and time step
-                self.pose_msg.pose.position.x += self.current_velocity.x * 0.001
-                self.pose_msg.pose.position.y += self.current_velocity.y * 0.001
-                self.pose_msg.pose.position.z += self.current_velocity.z * 0.001
+                self.pose_msg.pose.position.x += self.current_velocity.x * 0.005
+                self.pose_msg.pose.position.y += self.current_velocity.y * 0.005
+                self.pose_msg.pose.position.z += self.current_velocity.z * 0.005
                 
                 # Update the velocity message with the new calculated velocity
                 move_msg = Twist()

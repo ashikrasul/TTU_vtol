@@ -10,7 +10,7 @@ def fnc_callback(msg):
     global TRACKING_ARRAY_RECEIVED
     TRACKING_ARRAY_RECEIVED = msg
 
-P_gain = 0.05
+P_gain = 0.06
 I_gain = 0.000
 D_gain = 0.00
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
                 ### Calculate error ###
                 error_x = x_ctr - CTR_X_POS
                 error_y = y_ctr - CTR_Y_POS
-                error_z = size ** 0.5 - (AREA_SIZE) ** 0.5
+                error_z = size ** 0.5 - (AREA_SIZE) ** 0.7
 
                 ### Integral Term ###
                 integral_x += error_x
@@ -93,10 +93,10 @@ if __name__ == '__main__':
                 ### PID control signals ###
                 cmd_vx = P_gain * error_x + I_gain * integral_x + D_gain * derivative_x
                 cmd_vy = P_gain * -error_y + I_gain * integral_y + D_gain * -derivative_y
-                cmd_vz = 0.1 * error_z
+                cmd_vz = .5 * error_z
                 ### Clipping ###
                 cmd_vx = np.clip(cmd_vx, -1, 1)
-                cmd_vy = np.clip(cmd_vy, -1, 10)
+                cmd_vy = np.clip(cmd_vy, -1, 1)
                 cmd_vz = np.clip(cmd_vz, -1, 1)
 
                 vel_cmd_tracking.y = cmd_vx  # if target is at the right then generate positive cmd_vx

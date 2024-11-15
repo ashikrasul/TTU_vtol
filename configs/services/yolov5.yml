@@ -4,5 +4,3 @@ ros:
   ros_package: yolov5
   rosrun_files:
   - node_yolo.py
-  # - test.py 
-  # - landing_controller.py

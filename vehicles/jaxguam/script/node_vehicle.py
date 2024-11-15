@@ -101,7 +101,7 @@ class GUAM_Node(Vehicle_Node):
             vel_bIc_des = np.array([msg.linear.x, msg.linear.y, msg.linear.z])*10
             
             if self.control_msg is not None:
-                vel_bIc_des = vel_bIc_des + np.array([self.control_msg.x, self.control_msg.y, self.control_msg.z])
+                vel_bIc_des = vel_bIc_des + np.array([self.control_msg.x*-1, self.control_msg.y, self.control_msg.z])
 
 
             chi_dot_des = msg.angular.y*0.5
@@ -207,7 +207,7 @@ class GUAM_Node(Vehicle_Node):
         # Convert position back to meters for publishing
         self.vehicle_pose_msg.pose.position.x = b_state.aircraft[0][6] / 3.28084            # North
         self.vehicle_pose_msg.pose.position.y = b_state.aircraft[0][7] / 3.28084
-        self.vehicle_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 * -1
+        self.vehicle_pose_msg.pose.position.z = b_state.aircraft[0][8] / 3.28084 *-1
         self.vehicle_pose_msg.pose.orientation.x = b_state.aircraft[0][9]
         self.vehicle_pose_msg.pose.orientation.y = b_state.aircraft[0][10]
         self.vehicle_pose_msg.pose.orientation.z = b_state.aircraft[0][11]
@@ -216,7 +216,7 @@ class GUAM_Node(Vehicle_Node):
 
         self.vehicle_vel_msg.linear.x = b_state.aircraft[0][0] / 3.28084            # North
         self.vehicle_vel_msg.linear.y = b_state.aircraft[0][1] / 3.28084
-        self.vehicle_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084 * -1
+        self.vehicle_vel_msg.linear.z = b_state.aircraft[0][2] / 3.28084*-1
         self.vehicle_vel_pub.publish(self.vehicle_vel_msg)
 
 if __name__ == "__main__":
