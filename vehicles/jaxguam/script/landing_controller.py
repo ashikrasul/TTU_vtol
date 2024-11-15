@@ -10,7 +10,7 @@ def fnc_callback(msg):
     global TRACKING_ARRAY_RECEIVED
     TRACKING_ARRAY_RECEIVED = msg
 
-P_gain = 0.06
+P_gain = 0.05
 I_gain = 0.000
 D_gain = 0.00
 
