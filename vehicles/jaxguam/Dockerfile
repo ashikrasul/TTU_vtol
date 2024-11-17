@@ -1,31 +1,36 @@
 FROM ros:noetic
 
+# Set environment variables for NVIDIA and non-interactive apt
 ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/usr/local/bin:${PATH}"
 
+# Update and install essential tools in one layer to minimize image size
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     build-essential \
     curl \
+    eog \
+    x11-apps \
+    ros-noetic-tf \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python 3.10 and set it as default
+# Install Python 3.10 and set it as the default
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && apt-get install -y python3.10 python3.10-distutils python3.10-venv && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install pip for Python 3.10
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
-
-# Install JAX and JAXlib for CPU using Python 3.10
+# Install Python dependencies for JAX and other tools
 RUN python3.10 -m pip install --upgrade pip && \
     python3.10 -m pip install extensisq jax jaxlib pandas
 
+# Copy the jax_guam source and install it
 COPY jax_guam /jax_guam
 WORKDIR /jax_guam
-RUN pip install -e .
+RUN python3.10 -m pip install -e .
 
 # Set up ROS environment
 ENV ROS_DISTRO=noetic
@@ -36,4 +41,3 @@ ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
 ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
 
 RUN mkdir -p /catkin_ws/src
-

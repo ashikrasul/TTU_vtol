@@ -12,7 +12,7 @@ def fnc_callback(msg):
 
 P_gain = 0.05
 I_gain = 0.000
-D_gain = 0.00
+D_gain = 0.001
 
 TARGET_CLASS_INDEX = 2
 FREQ_LOW_LEVEL = 10

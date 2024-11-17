@@ -84,6 +84,8 @@ services:
     volumes:
         - ../vehicles/jaxguam:/catkin_ws/src/jaxguam
         - ../utils:/catkin_ws/src/jaxguam/script/utils
+        - /tmp/.X11-unix:/tmp/.X11-unix:rw
+        - ../vehicles/jaxguam/runs:/catkin_ws/runs
     privileged: true
     network_mode: host
     devices:
@@ -94,6 +96,8 @@ services:
       - roscore
     working_dir: /catkin_ws/src/jax_guam
     environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
       - SERVICE_NAME=jaxguam
 
   yolov5:
