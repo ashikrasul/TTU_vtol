@@ -35,6 +35,10 @@ git clone https://github.com/CPS-IL/rraaa-sim.git --recurse-submodules
 cd rraaa-sim
 git switch ashikrasul
 git submodule update --init --recursive
+#docker sudo access:
+sudo chmod 666 /var/run/docker.sock
+#docker access to host display
+xhost +local:docker
 python3 rraaa.py configs/single-static.yml
 ```
 
