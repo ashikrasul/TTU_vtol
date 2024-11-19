@@ -17,18 +17,17 @@ config_path = constants.merged_config_path
 temp_config_path = '/tmp/tmp_config.yml'
 
 ideal_x, ideal_y, ideal_z = -80, 75, 32.7
-range_offset = [40, 40, 100]
+range_offset = [40, 40, 120]
 
 x_min, x_max = ideal_x - range_offset[0], ideal_x + range_offset[0]
 y_min, y_max = ideal_y - range_offset[1], ideal_y + range_offset[1]
-z_min, z_max = ideal_z, ideal_z + range_offset[2]
+z_min, z_max = ideal_z + 20, ideal_z + range_offset[2]
 
 initial_positions = []
 final_positions = []
 landing_times = []
 landing_results = []
 final_euler_angles = []
-
 
 
 class SimulationMonitor:
@@ -72,7 +71,6 @@ class SimulationMonitor:
         self.zero_velocity_duration = 0
         self.velocity_zero_start_time = None
         self.current_pose = None
-        self.current_pose = None
         self.final_angles = None
 
 
@@ -87,6 +85,10 @@ def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
 
     with open(temp_config_path, 'w') as file:
         yaml.safe_dump(config, file)
+
+    # Initialize simulation status file to 'False'
+    with open(constants.simulation_status_file, 'w') as status_file:
+        status_file.write('False')
 
     process = subprocess.Popen(
         ["rosrun", "jaxguam", "land_vtol.py", "--config", temp_config_path],
@@ -116,6 +118,7 @@ def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
 
     except KeyboardInterrupt:
         logger.error("Keyboard interrupt detected. Terminating process...")
+
     finally:
         process.terminate()
         process.wait()
@@ -130,7 +133,6 @@ def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
             logger.warning("No final position recorded; appending None values.")
 
     return "Process completed successfully" if process.returncode == 0 else "Process terminated"
-
 
 
 if __name__ == "__main__":
@@ -149,7 +151,6 @@ if __name__ == "__main__":
 
             initial_positions.append((init_x, init_y, init_z))
 
-
             logger.info(f"Starting iteration {i + 1}...")
             start_time = time.time()
             stop_reason = run_simulation(monitor, init_x, init_y, init_z, args.timeout)
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 
             success = (
                 monitor.current_pose and
-                abs(monitor.current_pose.z - ideal_z) < .5 and
+                abs(monitor.current_pose.z - ideal_z) < 0.5 and
                 abs(monitor.current_pose.x - ideal_x) <= 4 and
                 abs(monitor.current_pose.y - ideal_y) <= 4
             )
@@ -170,6 +171,7 @@ if __name__ == "__main__":
         rospy.signal_shutdown("KeyboardInterrupt")
         os._exit(0)
 
+    # Save results after simulation loop
     run_folder = create_run_folder()
     save_results_to_csv(run_folder, initial_positions, final_positions, landing_times, landing_results, final_euler_angles)
     plot_initial_pos(run_folder, initial_positions, ideal_x, ideal_y)
@@ -177,3 +179,9 @@ if __name__ == "__main__":
     print(f"Plots saved in {run_folder}")
     save_summary_to_csv(base_dir="runs")
     print(f"Performance summary saved.")
+
+    # Update simulation status to 'True' after results are saved
+    with open(constants.simulation_status_file, 'w') as status_file:
+        status_file.write('True')
+
+    logger.info("Simulation status updated to True.")

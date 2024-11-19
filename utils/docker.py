@@ -92,10 +92,10 @@ class ROSContainer(DockerContainer):
 
     def build_workspace(self):
         ros_command = f"cd {self.workspace_path} && source /opt/ros/noetic/setup.bash && catkin_make"
-        log.info(f"Buildin {self.ros_package} in service {self.service_name}")
+        log.info(f"Building {self.ros_package} in service {self.service_name}")
         self.run_command_in_service(ros_command)
 
-    def run_ros_command(self, command, background = False):
+    def run_ros_command(self, command, background=False):
         ros_command = f"cd {self.workspace_path} && source devel/setup.bash && {command}"
         log.info(f"Running ROS command in service {self.service_name}: {ros_command}")
         return self.run_command_in_service(ros_command, background)
@@ -115,11 +115,6 @@ class ROSContainer(DockerContainer):
         else:
             log.error(f"No files to launch or run in {self.service_name}")
 
-    # def start_service(self):
-    #     super().start_service()
-    #     self.build_workspace()
-    #     self.launch_file()
-
 
 class ContainerManager:
     def __init__(self, config, compose_file):
@@ -127,6 +122,7 @@ class ContainerManager:
         self.compose_file = compose_file
         self.containers = []
         self._load_containers()
+
         for service in self.config:
             service_config = self.config[service]
             try:
@@ -139,14 +135,11 @@ class ContainerManager:
     def _load_containers(self):
         for service_name, service_config in self.config.items():
             if 'ros' in service_config:
-                ros_container = ROSContainer(service_name=service_name,
-                                             compose_file=self.compose_file,
-                                             service_config=service_config)
+                ros_container = ROSContainer(service_name=service_name, compose_file=self.compose_file, service_config=service_config)
                 log.info(f"Loaded ROS container for service: {service_name}")
                 self.containers.append(ros_container)
             else:
-                docker_container = DockerContainer(service_name=service_name,
-                                                   compose_file=self.compose_file, service_config=service_config)
+                docker_container = DockerContainer(service_name=service_name, compose_file=self.compose_file, service_config=service_config)
                 log.info(f"Loaded Docker container for service: {service_name}")
                 self.containers.append(docker_container)
 
@@ -157,15 +150,18 @@ class ContainerManager:
 
     def stop_all(self):
         log.info("Stopping all containers.")
-        for container in self.containers:
-            if isinstance(container, ROSContainer):
-                container.terminate_all()
-            container.stop_service()
+        try:
+            for container in self.containers:
+                container.stop_service()
+        except Exception as e:
+            log.error(f"Error stopping services: {e}")
 
-        # After the elegant stop above, bture force stop all running services,
-        # even those started implicitly, e.g. roscore
-        stop_command = ['docker', 'compose', '-f', self.compose_file, 'stop']
-        subprocess.run(stop_command, check=True, text=True)
+        log.info("Ensuring all containers are stopped using Docker Compose.")
+        try:
+            subprocess.run(['docker', 'compose', '-f', self.compose_file, 'stop'], check=True, text=True)
+            log.info("All containers stopped successfully.")
+        except subprocess.CalledProcessError as e:
+            log.error(f"Failed to stop containers using Docker Compose: {e}")
 
     def build_all_workspaces(self):
         log.info("Building all ROS workspaces.")
@@ -191,12 +187,30 @@ class ContainerManager:
 
     def wait_for_all(self):
         for container in self.containers:
-            container.wait_for_all()
+            try:
+                container.wait_for_all()
+                log.info(f"All processes for container {container.service_name} have completed.")
+            except Exception as e:
+                log.error(f"Error while waiting for container {container.service_name}: {e}")
 
     def terminate_all(self):
+        """Terminate all containers gracefully, with fallback to force stop."""
         log.info("Terminating running processes in all containers.")
-        for container in self.containers:
-            container.terminate_all()
+        try:
+            subprocess.run(['docker', 'compose', '-f', self.compose_file, 'stop'], check=True, text=True)
+            log.info("Containers stopped successfully.")
+        except subprocess.CalledProcessError as e:
+            log.error(f"Failed to stop containers gracefully: {e}")
+            self.force_stop_all_containers()
+
+    def force_stop_all_containers(self):
+        """Force stop and remove containers if graceful stop fails."""
+        log.warning("Forcing stop of all containers using Docker Compose.")
+        try:
+            subprocess.run(['docker', 'compose', '-f', self.compose_file, 'down', '--remove-orphans', '--timeout', '5'], check=True, text=True)
+            log.info("Containers forcefully stopped and removed.")
+        except subprocess.CalledProcessError as e:
+            log.error(f"Force stop encountered an issue: {e}")
 
     def run_command_on_host(self, command):
         try:
