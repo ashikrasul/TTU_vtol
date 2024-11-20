@@ -108,7 +108,7 @@ services:
     volumes:
         - ../perception/yolov5:/catkin_ws/src/yolov5
         - ../utils:/catkin_ws/src/yolov5/script/utils
-        - ../perception/yolov5/yolo_ashik.pt:/catkin_ws/src/yolov5/yolo_ashik.pt
+        # - ../perception/yolov5/yolo_ashi.pt:/catkin_ws/src/yolov5/yolo_ashik.pt
     privileged: true
     network_mode: host
     devices:

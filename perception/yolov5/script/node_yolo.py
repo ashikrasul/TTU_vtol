@@ -26,6 +26,19 @@ import sys, os
 # sys.path.append('/home/sim/simulator/')
 # sys.path.append('/home/sim/simulator/yolov5')
 
+
+def get_latest_model(directory):
+    files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.pt')]
+    if not files:
+        raise FileNotFoundError("No model files found in the directory.")
+    latest_file = max(files, key=os.path.getmtime)
+    return latest_file
+
+
+
+
+
+
 def plot_one_box(x, img, color=None, label=None, line_thickness=3):
     # Plots one bounding box on image img
     tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
@@ -51,7 +64,12 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 print(os.getcwd())
 
-yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/yolo_ashik.pt')
+yolo_directory = os.path.expanduser('~/../catkin_ws/src/yolov5/models')
+
+yolo_path = get_latest_model(yolo_directory)
+
+#changes made for bayesian OPT Looping 
+#yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/yolo1.pt')
 
 YOLO_MODEL = YOLO(yolo_path) # Yolo v8
 # YOLO_MODEL = YOLO("yolo_param/tasnim/best1.pt") # <--- This is Yolo v5

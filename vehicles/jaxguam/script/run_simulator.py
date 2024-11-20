@@ -144,7 +144,7 @@ if __name__ == "__main__":
     monitor = SimulationMonitor()
 
     try:
-        for i in range(10):
+        for i in range(5):
             init_x = np.random.uniform(x_min, x_max)
             init_y = np.random.uniform(y_min, y_max)
             init_z = np.random.uniform(z_min, z_max)

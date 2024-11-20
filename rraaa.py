@@ -80,14 +80,15 @@ class Test:
             log.info("Simulation completed successfully.")
 
         except Exception as e:
-            log.error(f"An error occurred during run_once: {e}")
-        finally:
-            log.info("Attempting to terminate all containers.")
-            try:
-                self.containermanager.terminate_all()
-            except Exception as e:
-                log.error(f"Error during termination: {e}")
-                self.containermanager.force_stop_all_containers()
+            pass 
+        #     log.error(f"An error occurred during run_once: {e}")
+        # finally:
+        #     log.info("Attempting to terminate all containers.")
+        #     try:
+        #         #self.containermanager.terminate_all()
+        #     except Exception as e:
+        #         log.error(f"Error during termination: {e}")
+        #         self.containermanager.force_stop_all_containers()
 
     def run_iterations(self, iter_count):
         """Runs multiple simulation iterations."""
