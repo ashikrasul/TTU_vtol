@@ -34,7 +34,7 @@ freeze: null
 half: true
 hsv_h: 0.015
 hsv_s: 0.7
-hsv_v: 0.15601864044243652
+hsv_v: 0.9554954880768387
 imgsz: 640
 int8: false
 iou: 0.7
@@ -78,7 +78,7 @@ save_hybrid: false
 save_json: false
 save_period: -1
 save_txt: false
-scale: 0.15599452033620265
+scale: 0.26146055935533763
 seed: 0
 shear: 0.01
 show: false
