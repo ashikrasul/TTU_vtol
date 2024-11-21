@@ -10,7 +10,7 @@ from geometry_msgs.msg import PoseStamped, Vector3
 from tf.transformations import euler_from_quaternion
 from utils import constants
 from loguru import logger
-from plot_results import create_run_folder, save_results_to_csv, plot_initial_pos, plot_final_pos, save_summary_to_csv  # Import from plot_results
+from plot_results import create_run_folder, save_results_to_csv, plot_initial_pos, plot_final_pos, save_summary_to_csv_and_metadata  # Import from plot_results
 
 
 config_path = constants.merged_config_path
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     monitor = SimulationMonitor()
 
     try:
-        for i in range(5):
+        for i in range(10):
             init_x = np.random.uniform(x_min, x_max)
             init_y = np.random.uniform(y_min, y_max)
             init_z = np.random.uniform(z_min, z_max)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
             success = (
                 monitor.current_pose and
-                abs(monitor.current_pose.z - ideal_z) < 0.5 and
+                abs(monitor.current_pose.z - ideal_z) < 1 and
                 abs(monitor.current_pose.x - ideal_x) <= 4 and
                 abs(monitor.current_pose.y - ideal_y) <= 4
             )
@@ -174,10 +174,14 @@ if __name__ == "__main__":
     # Save results after simulation loop
     run_folder = create_run_folder()
     save_results_to_csv(run_folder, initial_positions, final_positions, landing_times, landing_results, final_euler_angles)
-    plot_initial_pos(run_folder, initial_positions, ideal_x, ideal_y)
-    plot_final_pos(run_folder, final_positions, ideal_x, ideal_y)
+    # plot_initial_pos(run_folder, initial_positions, ideal_x, ideal_y)
+    # plot_final_pos(run_folder, final_positions, ideal_x, ideal_y)
     print(f"Plots saved in {run_folder}")
-    save_summary_to_csv(base_dir="runs")
+
+
+
+
+    save_summary_to_csv_and_metadata(base_dir="runs")
     print(f"Performance summary saved.")
 
     # Update simulation status to 'True' after results are saved

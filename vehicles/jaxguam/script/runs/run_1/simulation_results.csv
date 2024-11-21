@@ -1,0 +1,3 @@
+x_i,y_i,z_i,Time to Land (s),Landing Result (Success/Fail),x_final,y_final,z_final,final_roll,final_pitch,final_yaw
+-95.05585479256538,77.25902775516661,65.59459042881645,0.11211395263671875,Fail,,,,,,
+-100.60969054426089,54.695417915704425,149.21130261671553,0.11232161521911621,Fail,,,,,,
