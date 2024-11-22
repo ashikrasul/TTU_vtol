@@ -51,11 +51,11 @@ def train_and_evaluate(scale, hsv_v):
     """
     Train YOLO and evaluate the success rate based on the given hyperparameters.
     """
-    cfg_file = '/home/arasul42@tntech.edu/works/rraaa-sim/configs/hyp_bayes.yaml'
-    results_csv = '/home/arasul42@tntech.edu/works/rraaa-sim/utils/performance_summary.csv'
+    cfg_file = './configs/hyp_bayes.yaml'
+    results_csv = './utils/performance_summary.csv'
 
     # Directory to save trained YOLO models
-    save_dir = '/home/arasul42@tntech.edu/works/temp/rraaa-sim/perception/yolov5/models'
+    save_dir = './perception/yolov5/models'
 
     try:
         torch.cuda.empty_cache()
@@ -97,7 +97,7 @@ def optimize_scale_and_hsv_v():
 
     try:
         optimizer.maximize(
-            init_points=3,  # Number of random initial points
+            init_points=5,  # Number of random initial points
             n_iter=15       # Number of optimization iterations
         )
     except KeyboardInterrupt:

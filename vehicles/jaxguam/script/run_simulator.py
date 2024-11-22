@@ -46,7 +46,6 @@ class SimulationMonitor:
         self.current_pose = msg.pose.position
         if msg.pose.position.z < ideal_z:
             self.z_value_below_threshold = True
-
             quaternion = (
                 msg.pose.orientation.x,
                 msg.pose.orientation.y,
@@ -72,6 +71,11 @@ class SimulationMonitor:
         self.velocity_zero_start_time = None
         self.current_pose = None
         self.final_angles = None
+        if self.current_pose is not None:
+            self.current_pose.orientation.x = 180
+            self.current_pose.orientation.y = 0.0
+            self.current_pose.orientation.z = 0.0
+            self.current_pose.orientation.w = 1.0
 
 
 def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
@@ -144,11 +148,27 @@ if __name__ == "__main__":
     monitor = SimulationMonitor()
 
     try:
+        max_xy_offset_cap = 50  # Maximum allowable offset for x and y
+
         for i in range(10):
-            init_x = np.random.uniform(x_min, x_max)
-            init_y = np.random.uniform(y_min, y_max)
+            # Uniformly sample z
             init_z = np.random.uniform(z_min, z_max)
 
+            # Calculate z offset
+            z_offset = abs(init_z - ideal_z)
+
+            # Dynamically calculate x and y offsets, capped at max_xy_offset_cap
+            max_xy_offset = min(z_offset, max_xy_offset_cap)
+
+            # Calculate valid ranges for x and y
+            x_range = (ideal_x - max_xy_offset, ideal_x + max_xy_offset)
+            y_range = (ideal_y - max_xy_offset, ideal_y + max_xy_offset)
+
+            # Ensure x and y remain within their respective bounds
+            init_x = np.random.uniform(max(x_min, x_range[0]), min(x_max, x_range[1]))
+            init_y = np.random.uniform(max(y_min, y_range[0]), min(y_max, y_range[1]))
+
+            # Append to initial positions
             initial_positions.append((init_x, init_y, init_z))
 
             logger.info(f"Starting iteration {i + 1}...")
@@ -166,6 +186,7 @@ if __name__ == "__main__":
             landing_results.append("Success" if success else "Fail")
 
             monitor.reset()
+
 
     except KeyboardInterrupt:
         rospy.signal_shutdown("KeyboardInterrupt")

@@ -48,6 +48,8 @@ class Environment():
         settings.actor_active_distance  = 500
         self.world.apply_settings(settings)
 
+        self.set_weather_from_config()
+
         ### Initiate states and blank messages ###
         self._autopilot_on = False
         self.collision_n_count = 0
@@ -612,3 +614,69 @@ class Environment():
             except RuntimeError as e:
                 log.error(f"Attempt {attempt + 1} to reset Carla world failed: {e}")
                 time.sleep(5)
+
+    def set_weather_from_config(self):
+        """
+        Sets the weather and lighting in the CARLA simulation based on the config file.
+        If the 'weather_flag' is 'default', applies default weather.
+        If the 'lighting_flag' is 'default', applies default lighting.
+        Weather and lighting are controlled independently based on their respective flags.
+        """
+        try:
+            # Get flags for weather and lighting
+            weather_flag = self.config['services']['env_sim']['weather'].get('weather_flag', 'default').lower()
+            lighting_flag = self.config['services']['env_sim']['weather'].get('lighting_flag', 'default').lower()
+
+            # Start with default weather
+            weather = carla.WeatherParameters.ClearNoon
+
+            # Handle custom weather if weather_flag is 'custom'
+            if weather_flag == 'custom':
+                # Get the base weather type
+                weather_type = self.config['services']['env_sim']['weather']['type']
+                # CARLA predefined weather presets
+                weather_presets = {
+                    "ClearNoon": carla.WeatherParameters.ClearNoon,
+                    "ClearSunset": carla.WeatherParameters.ClearSunset,
+                    "CloudyNoon": carla.WeatherParameters.CloudyNoon,
+                    "CloudySunset": carla.WeatherParameters.CloudySunset,
+                    "WetNoon": carla.WeatherParameters.WetNoon,
+                    "WetSunset": carla.WeatherParameters.WetSunset,
+                    "MidRainyNoon": carla.WeatherParameters.MidRainyNoon,
+                    "MidRainSunset": carla.WeatherParameters.MidRainSunset,
+                    "HardRainNoon": carla.WeatherParameters.HardRainNoon,
+                    "HardRainSunset": carla.WeatherParameters.HardRainSunset,
+                    "SoftRainNoon": carla.WeatherParameters.SoftRainNoon,
+                    "SoftRainSunset": carla.WeatherParameters.SoftRainSunset,
+                }
+                # Use the specified weather preset
+                weather = weather_presets.get(weather_type, carla.WeatherParameters.ClearNoon)
+                log.info(f"Weather flag is 'custom'. Using custom weather type: {weather_type}.")
+            elif weather_flag != 'default':
+                raise ValueError(f"Invalid weather_flag '{weather_flag}'. Valid options are 'default' or 'custom'.")
+
+            # Handle custom lighting if lighting_flag is 'custom'
+            if lighting_flag == 'custom':
+                # Override specific lighting parameters from the config
+                lighting_config = self.config['services']['env_sim']['weather'].get('lighting', {})
+                weather.cloudiness = lighting_config.get('cloudiness', weather.cloudiness)
+                weather.precipitation = lighting_config.get('precipitation', weather.precipitation)
+                weather.precipitation_deposits = lighting_config.get('precipitation_deposits', weather.precipitation_deposits)
+                weather.sun_altitude_angle = lighting_config.get('sun_altitude_angle', weather.sun_altitude_angle)
+                weather.sun_azimuth_angle = lighting_config.get('sun_azimuth_angle', weather.sun_azimuth_angle)
+                weather.fog_density = lighting_config.get('fog_density', weather.fog_density)
+                weather.fog_distance = lighting_config.get('fog_distance', weather.fog_distance)
+                log.info(f"Lighting flag is 'custom'. Using custom lighting settings: {lighting_config}.")
+            elif lighting_flag != 'default':
+                raise ValueError(f"Invalid lighting_flag '{lighting_flag}'. Valid options are 'default' or 'custom'.")
+
+        except KeyError as e:
+            log.error(f"Missing configuration key: {e}. Defaulting to ClearNoon weather.")
+            weather = carla.WeatherParameters.ClearNoon
+        except ValueError as e:
+            log.error(e)
+            weather = carla.WeatherParameters.ClearNoon
+
+        # Apply the weather settings to the CARLA world
+        self.world.set_weather(weather)
+        log.info("Weather and lighting applied.")

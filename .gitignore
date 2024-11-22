@@ -248,3 +248,9 @@ logs/
 .mrconfig
 .rosinstall
 .rosinstall.bak
+
+#ignore Training related Data
+
+/yolo_training/training_result
+/vehicles/jaxguam/runs
+/perception/yolov5/models

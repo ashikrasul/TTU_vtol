@@ -67,9 +67,12 @@ print(os.getcwd())
 yolo_directory = os.path.expanduser('~/../catkin_ws/src/yolov5/models')
 
 yolo_path = get_latest_model(yolo_directory)
+print(f"Latest model loaded: {os.path.basename(yolo_path)}")
+
+
 
 #changes made for bayesian OPT Looping 
-#yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/yolo1.pt')
+#yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/models/best.pt')
 
 YOLO_MODEL = YOLO(yolo_path) # Yolo v8
 # YOLO_MODEL = YOLO("yolo_param/tasnim/best1.pt") # <--- This is Yolo v5
