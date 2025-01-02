@@ -15,4 +15,4 @@ metadata_file_path = os.path.join(base_dir,"metadata_file_path.txt")
 
 ideal_x = -80
 ideal_y = 75
-ideal_z = 32.7
+ideal_z = 35

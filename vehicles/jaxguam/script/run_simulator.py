@@ -6,6 +6,7 @@ import rospy
 import numpy as np
 import subprocess
 import argparse
+from threading import Lock
 from geometry_msgs.msg import PoseStamped, Vector3
 from tf.transformations import euler_from_quaternion
 from utils import constants
@@ -16,7 +17,7 @@ from plot_results import create_run_folder, save_results_to_csv, plot_initial_po
 config_path = constants.merged_config_path
 temp_config_path = '/tmp/tmp_config.yml'
 
-ideal_x, ideal_y, ideal_z = -80, 75, 32.7
+ideal_x, ideal_y, ideal_z = -80, 75, 35
 range_offset = [40, 40, 120]
 
 x_min, x_max = ideal_x - range_offset[0], ideal_x + range_offset[0]
@@ -32,6 +33,7 @@ final_euler_angles = []
 
 class SimulationMonitor:
     def __init__(self):
+        self.lock = Lock()
         self.z_value_below_threshold = False
         self.zero_velocity_duration = 0
         self.velocity_zero_start_time = None
@@ -43,39 +45,37 @@ class SimulationMonitor:
 
     def pose_callback(self, msg):
         """Callback to check z-value and save current position."""
-        self.current_pose = msg.pose.position
-        if msg.pose.position.z < ideal_z:
-            self.z_value_below_threshold = True
-            quaternion = (
-                msg.pose.orientation.x,
-                msg.pose.orientation.y,
-                msg.pose.orientation.z,
-                msg.pose.orientation.w
-            )
-            self.final_angles = euler_from_quaternion(quaternion)
+        with self.lock:
+            self.current_pose = msg.pose.position
+            if msg.pose.position.z < ideal_z:
+                self.z_value_below_threshold = True
+                quaternion = (
+                    msg.pose.orientation.x,
+                    msg.pose.orientation.y,
+                    msg.pose.orientation.z,
+                    msg.pose.orientation.w
+                )
+                self.final_angles = euler_from_quaternion(quaternion)
 
     def velocity_callback(self, msg):
         """Callback to check velocity."""
-        if msg.x == 0 and msg.y == 0 and msg.z == 0:
-            if self.velocity_zero_start_time is None:
-                self.velocity_zero_start_time = time.time()
-            self.zero_velocity_duration = time.time() - self.velocity_zero_start_time
-        else:
-            self.velocity_zero_start_time = None
-            self.zero_velocity_duration = 0
+        with self.lock:
+            if msg.x == 0 and msg.y == 0 and msg.z == 0:
+                if self.velocity_zero_start_time is None:
+                    self.velocity_zero_start_time = time.time()
+                self.zero_velocity_duration = time.time() - self.velocity_zero_start_time
+            else:
+                self.velocity_zero_start_time = None
+                self.zero_velocity_duration = 0
 
     def reset(self):
         """Reset state for the next iteration."""
-        self.z_value_below_threshold = False
-        self.zero_velocity_duration = 0
-        self.velocity_zero_start_time = None
-        self.current_pose = None
-        self.final_angles = None
-        if self.current_pose is not None:
-            self.current_pose.orientation.x = 180
-            self.current_pose.orientation.y = 0.0
-            self.current_pose.orientation.z = 0.0
-            self.current_pose.orientation.w = 1.0
+        with self.lock:
+            self.z_value_below_threshold = False
+            self.zero_velocity_duration = 0
+            self.velocity_zero_start_time = None
+            self.current_pose = None
+            self.final_angles = None
 
 
 def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
@@ -118,14 +118,20 @@ def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
                 logger.warning(f"Iteration stopped: Timeout reached after {timeout}s.")
                 break
 
-            rospy.sleep(0.1)
+            rate.sleep()
 
     except KeyboardInterrupt:
         logger.error("Keyboard interrupt detected. Terminating process...")
 
     finally:
         process.terminate()
-        process.wait()
+        try:
+            stdout, stderr = process.communicate(timeout=5)
+            logger.info(f"Subprocess output: {stdout.decode()}")
+            logger.error(f"Subprocess errors: {stderr.decode()}")
+        except subprocess.TimeoutExpired:
+            process.kill()
+            logger.error("Subprocess timed out and was killed.")
 
         if monitor.current_pose:
             final_positions.append((monitor.current_pose.x, monitor.current_pose.y, monitor.current_pose.z))
@@ -149,6 +155,7 @@ if __name__ == "__main__":
 
     try:
         max_xy_offset_cap = 50  # Maximum allowable offset for x and y
+        rate = rospy.Rate(10)  # 10 Hz rate for the main loop
 
         for i in range(10):
             # Uniformly sample z
@@ -186,7 +193,7 @@ if __name__ == "__main__":
             landing_results.append("Success" if success else "Fail")
 
             monitor.reset()
-
+            rate.sleep()
 
     except KeyboardInterrupt:
         rospy.signal_shutdown("KeyboardInterrupt")
@@ -195,12 +202,7 @@ if __name__ == "__main__":
     # Save results after simulation loop
     run_folder = create_run_folder()
     save_results_to_csv(run_folder, initial_positions, final_positions, landing_times, landing_results, final_euler_angles)
-    # plot_initial_pos(run_folder, initial_positions, ideal_x, ideal_y)
-    # plot_final_pos(run_folder, final_positions, ideal_x, ideal_y)
     print(f"Plots saved in {run_folder}")
-
-
-
 
     save_summary_to_csv_and_metadata(base_dir="runs")
     print(f"Performance summary saved.")

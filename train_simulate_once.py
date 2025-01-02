@@ -64,22 +64,19 @@ def train_and_evaluate(scale, hsv_v):
         pipeline = YOLOTrainingPipeline(cfg_file=cfg_file, save_dir=save_dir, scale_value=scale, hsv_v_value=hsv_v)
         pipeline.run()
 
-        torch.cuda.empty_cache()
-        gc.collect()
-
         # Run the external script to calculate landing success rate
         subprocess.run(["python3", "rraaa.py", "configs/single-static.yml"], check=True)
 
         torch.cuda.empty_cache()
         gc.collect()
 
-        return get_latest_success_rate(results_csv)
+        # return get_latest_success_rate(results_csv)
 
     except KeyboardInterrupt:
         print("\nTraining interrupted by user. Cleaning up resources...")
         torch.cuda.empty_cache()
         gc.collect()
-        return 0.0  # Return a default success rate if interrupted
+        # return 0.0  # Return a default success rate if interrupted
 
 
 def optimize_scale_and_hsv_v():
@@ -101,7 +98,7 @@ def optimize_scale_and_hsv_v():
     try:
         optimizer.maximize(
             init_points=5,  # Number of random initial points
-            n_iter=30       # Number of optimization iterations
+            n_iter=15       # Number of optimization iterations
         )
     except KeyboardInterrupt:
         print("\nOptimization interrupted by user. Exiting gracefully...")
@@ -114,13 +111,15 @@ def optimize_scale_and_hsv_v():
 if __name__ == "__main__":
     try:
         # Increment optimization run number
-        get_next_optimization_run_number(constants.metadata_file_path)
+        # get_next_optimization_run_number(constants.metadata_file_path)
 
         # Start Bayesian Optimization
-        best_params = optimize_scale_and_hsv_v()
+        # best_params = optimize_scale_and_hsv_v()
 
+        train_and_evaluate(0.44, 0.4)
+        
         # Output the best parameters found
-        print(f"Optimized parameters: scale={best_params['params']['scale']}, hsv_v={best_params['params']['hsv_v']}")
+        # print(f"Optimized parameters: scale={best_params['params']['scale']}, hsv_v={best_params['params']['hsv_v']}")
     except KeyboardInterrupt:
         print("\nScript terminated by user.")
     except Exception as e:

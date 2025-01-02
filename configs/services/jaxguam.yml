@@ -4,7 +4,8 @@ ros:
   ros_package: jaxguam
   rosrun_files:
   - landing_controller.py
-  - run_simulator.py
+  # - run_simulator.py
+  # - land_vtol.py
 
 
     

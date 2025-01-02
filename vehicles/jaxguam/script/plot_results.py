@@ -12,7 +12,7 @@ from utils import constants
 
 
 
-ideal_x, ideal_y, ideal_z = -80, 75, 32.7
+ideal_x, ideal_y, ideal_z = -80, 75, 35
 
 def create_run_folder(base_dir="runs"):
     """Create a unique run folder (run_1, run_2, etc.)."""

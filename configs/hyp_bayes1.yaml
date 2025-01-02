@@ -2,9 +2,9 @@ task: detect
 mode: train
 model: yolov8s.pt
 data: /home/arasul42@tntech.edu/image_detection/ensembling_to_uncertainty/data/subset_5.yaml
-epochs: 50
+epochs: 100
 time: null
-patience: 50
+patience: 100
 batch: 35
 imgsz: 640
 save: true
@@ -70,10 +70,10 @@ simplify: false
 opset: null
 workspace: 4
 nms: false
-lr0: 0.0005
-lrf: 0.05
+lr0: 0.001
+lrf: 0.01
 momentum: 0.937
-weight_decay: 0.001
+weight_decay: 0.0005
 warmup_epochs: 3.0
 warmup_momentum: 0.8
 warmup_bias_lr: 0.1
@@ -85,7 +85,7 @@ kobj: 1.0
 label_smoothing: 0.0
 nbs: 64
 hsv_h: 0.015
-hsv_s: 0.9
+hsv_s: 0.7
 hsv_v: 0.4
 degrees: 0.0
 translate: 0.1
@@ -96,7 +96,7 @@ flipud: 0.0
 fliplr: 0.5
 bgr: 0.0
 mosaic: 1.0
-mixup: 0.7
+mixup: 0.0
 copy_paste: 0.0
 auto_augment: None
 erasing: 0.4

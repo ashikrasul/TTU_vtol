@@ -9,12 +9,8 @@ from utils import constants
 
 
 def get_next_optimization_run_number(meta_file_path):
-    """
-    Reads the last optimization run number from the metadata file, increments it, and saves it back.
-    """
     os.makedirs(os.path.dirname(meta_file_path), exist_ok=True)
 
-    # Read the last run number from the metadata file
     last_run_number = 0
     if os.path.exists(meta_file_path):
         with open(meta_file_path, 'r') as f:
@@ -23,16 +19,13 @@ def get_next_optimization_run_number(meta_file_path):
                     last_run_number = int(line.split(":")[1].strip())
                     break
 
-    # Increment the run number
     next_run_number = last_run_number + 1
 
-    # Update the metadata file with the new run number
     with open(meta_file_path, 'w') as f:
         f.write(f"optimization_run: {next_run_number}\n")
 
     print(f"Updated optimization run number to: {next_run_number}")
     return next_run_number
-
 
 def get_latest_success_rate(results_csv):
     try:
@@ -46,28 +39,20 @@ def get_latest_success_rate(results_csv):
         print(f"Error reading success rate: {e}")
         return 0.0  # Default to 0 if error occurs
 
-
 def train_and_evaluate(scale, hsv_v):
-    """
-    Train YOLO and evaluate the success rate based on the given hyperparameters.
-    """
     cfg_file = './configs/hyp_bayes.yaml'
     results_csv = './utils/performance_summary.csv'
-
-    # Directory to save trained YOLO models
     save_dir = './perception/yolov5/models'
 
     try:
         torch.cuda.empty_cache()
 
-        # Pass the hyperparameters (scale and hsv_v) to the YOLOTrainingPipeline
         pipeline = YOLOTrainingPipeline(cfg_file=cfg_file, save_dir=save_dir, scale_value=scale, hsv_v_value=hsv_v)
         pipeline.run()
 
         torch.cuda.empty_cache()
         gc.collect()
 
-        # Run the external script to calculate landing success rate
         subprocess.run(["python3", "rraaa.py", "configs/single-static.yml"], check=True)
 
         torch.cuda.empty_cache()
@@ -79,13 +64,30 @@ def train_and_evaluate(scale, hsv_v):
         print("\nTraining interrupted by user. Cleaning up resources...")
         torch.cuda.empty_cache()
         gc.collect()
-        return 0.0  # Return a default success rate if interrupted
+        return 0.0
 
 
-def optimize_scale_and_hsv_v():
+def load_posterior_points_for_run(file_path, run_number, max_points=30):
     """
-    Perform Bayesian Optimization on the `scale` and `hsv_v` hyperparameters.
+    Load posterior values (Scale, HSV_V, and Success Rate) for a specific optimization run from the CSV file.
     """
+    try:
+        df = pd.read_csv(file_path)
+
+        # Filter rows corresponding to the specified optimization run
+        filtered_points = df[df['Optimization Run'] == run_number]
+
+        # Select the required columns and limit to the first `max_points` rows
+        selected_points = filtered_points[['Scale', 'HSV_V', 'Success Rate']].head(max_points).to_dict(orient='records')
+
+        print(f"Loaded posterior points for Optimization Run {run_number}: {selected_points}")
+        return selected_points
+    except Exception as e:
+        print(f"Error loading posterior points for Optimization Run {run_number}: {e}")
+        return []
+
+
+def optimize_scale_and_hsv_v(posterior_points):
     pbounds = {
         'scale': (0.0, 1),
         'hsv_v': (0.0, 1)
@@ -98,10 +100,17 @@ def optimize_scale_and_hsv_v():
         random_state=42
     )
 
+    # Register posterior points into the optimizer
+    for point in posterior_points:
+        optimizer.register(
+            params={'scale': point['Scale'], 'hsv_v': point['HSV_V']},
+            target=point['Success Rate']
+        )
+
     try:
         optimizer.maximize(
-            init_points=5,  # Number of random initial points
-            n_iter=30       # Number of optimization iterations
+            init_points=5 - len(posterior_points),  # Adjust based on registered points
+            n_iter=30
         )
     except KeyboardInterrupt:
         print("\nOptimization interrupted by user. Exiting gracefully...")
@@ -113,13 +122,14 @@ def optimize_scale_and_hsv_v():
 
 if __name__ == "__main__":
     try:
-        # Increment optimization run number
         get_next_optimization_run_number(constants.metadata_file_path)
 
-        # Start Bayesian Optimization
-        best_params = optimize_scale_and_hsv_v()
+        posterior_points_csv = './utils/performance_summary.csv'
+        optimization_run = 15  # Specify the optimization run
+        posterior_points = load_posterior_points_for_run(posterior_points_csv, optimization_run)
 
-        # Output the best parameters found
+        best_params = optimize_scale_and_hsv_v(posterior_points)
+
         print(f"Optimized parameters: scale={best_params['params']['scale']}, hsv_v={best_params['params']['hsv_v']}")
     except KeyboardInterrupt:
         print("\nScript terminated by user.")
