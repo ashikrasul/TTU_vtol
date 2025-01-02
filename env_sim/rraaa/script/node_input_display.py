@@ -164,9 +164,9 @@ def run_input_node(args):
     rate=rospy.Rate(FREQ)
 
     # Getting the world and
-    display_man = DisplayManager(grid_size=[1, 3], window_size=[args.width, args.height])
+    display_man = DisplayManager(grid_size=[1, 2], window_size=[args.width, args.height])
 
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_overview/image_raw'}, display_pos=[0, 2], display_scale=1)
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_overview/image_raw'}, display_pos=[0, 2], display_scale=1)
     # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_front/image_raw'}, display_pos=[1, 1])
     # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_left/image_raw'}, display_pos=[1, 0])
     # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_right/image_raw'}, display_pos=[1, 2])
@@ -239,7 +239,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='1080x300',
+        default='1200x600',
         help='window resolution (default: 1600x800)')
 
     ### Traffic Setting ###

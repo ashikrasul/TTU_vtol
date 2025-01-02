@@ -1,7 +1,1 @@
-hsv_v: 0.789966763343701
-model_name: yolo187.pt
-optimization_run: 17
-run_number: run_245
-scale: 0.07453229721360932
-std_dev: 33.715403
-success_rate: 0.000000
+optimization_run: 18

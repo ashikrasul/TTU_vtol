@@ -1,7 +1,7 @@
 task: detect
 mode: train
 model: yolov8s.pt
-data: /home/arasul42@tntech.edu/image_detection/ensembling_to_uncertainty/data/subset_5.yaml
+data: ../data/subset_5.yaml
 epochs: 50
 time: null
 patience: 50
@@ -12,7 +12,7 @@ save_period: -1
 cache: ram
 device: null
 workers: 8
-project: /home/arasul42@tntech.edu/image_detection/ensembling_to_uncertainty/rough_work/model5_exp2
+project: ../yolo_training/temp_project
 name: train
 exist_ok: true
 pretrained: true
@@ -103,4 +103,4 @@ erasing: 0.4
 crop_fraction: 1.0
 cfg: null
 tracker: botsort.yaml
-save_dir: /home/arasul42@tntech.edu/image_detection/ensembling_to_uncertainty/TrainingResults/Train3/train
+save_dir: ../yolo_training/temp_project/train
