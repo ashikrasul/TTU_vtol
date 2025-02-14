@@ -155,8 +155,8 @@ def plot_final_pos(run_folder, final_positions, ideal_x, ideal_y):
 # Main script
 def main():
     # Input CSV file path
-    input_csv = "/home/arasul42@tntech.edu/works/rraaa-sim/vehicles/jaxguam/runs/run_228/simulation_results.csv"  # Update with your CSV file path
-    output_folder = "/home/arasul42@tntech.edu/works/rraaa-sim/plots/without_arrow"  # Folder to save plots
+    input_csv = "./vehicles/jaxguam/runs/run_228/simulation_results.csv"  # Update with your CSV file path
+    output_folder = "./plots/without_arrow"  # Folder to save plots
     os.makedirs(output_folder, exist_ok=True)
 
     # Read data from CSV

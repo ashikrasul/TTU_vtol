@@ -86,6 +86,6 @@ def generate_gaussian_process_plots_centered_on_data(csv_path, optimization_run)
 
 # Example usage:
 # Provide the CSV file path and the optimization run number
-csv_path = "/home/arasul42@tntech.edu/works/rraaa-sim/utils/performance_summary.csv"  # Replace with your CSV file path
+csv_path = "./utils/performance_summary.csv"  # Replace with your CSV file path
 optimization_runs = [10,12] # Replace with the desired optimization run number
 generate_gaussian_process_plots_centered_on_data(csv_path, optimization_runs)
