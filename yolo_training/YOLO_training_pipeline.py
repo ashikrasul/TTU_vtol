@@ -48,7 +48,7 @@ class YOLOTrainingPipeline:
 
     def train_yolov8(self):
         """Trains YOLOv8 with the specified scale and hsv_v, and saves only the best model."""
-        results_dir = '/home/arasul42@tntech.edu/works/rraaa-sim/yolo_training/training_result'
+        results_dir = './training_result'
         save_dir = create_incremental_folder(results_dir)
 
         # Load and update the configuration file
