@@ -255,7 +255,7 @@ logs/
 /vehicles/jaxguam/runs
 /perception/yolov5/models
 /training_result
-/helipad_detection
+
 
 
 /utils/metadata_file_path.txt
