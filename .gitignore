@@ -254,3 +254,8 @@ logs/
 /yolo_training/training_result
 /vehicles/jaxguam/runs
 /perception/yolov5/models
+
+#Ignore Yolo Trainind dataset
+
+/dataset
+
