@@ -254,6 +254,8 @@ logs/
 /yolo_training/training_result
 /vehicles/jaxguam/runs
 /perception/yolov5/models
+/training_result
+/helipad_detection
 
-#Ignore Yolo Trainind dataset
 
+/utils/metadata_file_path.txt

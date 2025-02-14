@@ -1,4 +1,4 @@
-optimization_run: 21
-run_number: run_253
-std_dev: 80.849203
-success_rate: 0.600000
+hsv_v: 0.005392366005023352
+model_name: yolo189.pt
+optimization_run: 24
+scale: 0.9960851162240227
