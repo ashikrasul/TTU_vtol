@@ -45,7 +45,7 @@ def generate_gaussian_process_plots_centered_on_data(csv_path, optimization_run)
     z_pred = mean_pred.reshape(x_mesh.shape)
 
     # Plot the Gaussian Process
-    plt.figure(figsize=(12, 12))
+    plt.figure(figsize=(12, 10))
     contour = plt.contourf(x_mesh, y_mesh, z_pred, levels=50, cmap="inferno", alpha=0.9, vmin=0, vmax=1)
     cbar=plt.colorbar(contour, label="Predicted Success Rate")
     cbar.ax.set_ylabel("Predicted Success Rate", fontsize=18,fontweight='bold', color='black')  # Label font size
@@ -67,7 +67,7 @@ def generate_gaussian_process_plots_centered_on_data(csv_path, optimization_run)
     # Add labels and legend
     plt.xlabel("Scale",fontsize=20, fontweight='bold', color='black')
     plt.ylabel("Brightness Value (hsv_v)",fontsize=20, fontweight='bold', color='black')
-    plt.title(f"Success Rate Evolution with Training", fontsize=22, fontweight='bold', color='black')  # Title styling
+    # plt.title(f"Success Rate Evolution with Training", fontsize=22, fontweight='bold', color='black')  # Title styling
     plt.xticks(fontsize=20)  # Set the font size of x-axis ticks
     plt.yticks(fontsize=20)  # Set the font size of y-axis ticks
 

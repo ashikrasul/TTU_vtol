@@ -41,3 +41,4 @@ ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
 ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
 
 RUN mkdir -p /catkin_ws/src
+

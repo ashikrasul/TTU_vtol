@@ -10,9 +10,9 @@ def fnc_callback(msg):
     global TRACKING_ARRAY_RECEIVED
     TRACKING_ARRAY_RECEIVED = msg
 
-P_gain = 0.04
-I_gain = 0.0001
-D_gain = 0.001
+P_gain = 0.06
+I_gain = 0.0000 # 0.0001
+D_gain = 0.0000 # 0.0001
 
 TARGET_CLASS_INDEX = 2
 FREQ_LOW_LEVEL = 10

@@ -43,7 +43,7 @@ def plot_initial_pos(run_folder, initial_positions, ideal_x, ideal_y):
     # ax.add_patch(rect)
 
     # 3. Filled box with transparency
-    filled_rect = Rectangle((ideal_x - 2, ideal_y - 2), 4, 4, 
+    filled_rect = Rectangle((ideal_x-4, ideal_y-4), 8, 8, 
                         linewidth=0, edgecolor='none', facecolor='red', alpha=0.25)
     ax.add_patch(filled_rect)
 
@@ -72,7 +72,7 @@ def plot_initial_pos(run_folder, initial_positions, ideal_x, ideal_y):
     plt.tight_layout()
 
     # Save and close the plot
-    plt.savefig(f"{run_folder}/initial_positions.pdf")  # Save as PDF
+    plt.savefig(f"{run_folder}/initial_positions.PNG")  # Save as PDF
     plt.close()
 
 # Function to plot final positions
@@ -95,7 +95,8 @@ def plot_final_pos(run_folder, final_positions, ideal_x, ideal_y):
         s=100,
         edgecolor='black',
         linewidth=0.5,
-        label='Final Positions'
+        label='Final Positions',
+        vmin=0, vmax=10
     )
 
 
@@ -114,7 +115,7 @@ def plot_final_pos(run_folder, final_positions, ideal_x, ideal_y):
 
 
 
-    filled_rect = Rectangle((ideal_x - 2, ideal_y - 2), 4, 4, 
+    filled_rect = Rectangle((ideal_x-4, ideal_y-4), 8, 8, 
         linewidth=0, edgecolor='none', facecolor='red', alpha=0.25)
     ax.add_patch(filled_rect)
 
@@ -122,8 +123,11 @@ def plot_final_pos(run_folder, final_positions, ideal_x, ideal_y):
     plt.title("Final Landing Positions", fontsize=20, fontweight='bold', color='black')  # Title styling
     plt.xlabel("X Position (m)", fontsize=18, fontweight='bold', color='black')   # X-axis label styling
     plt.ylabel("Y Position (m)", fontsize=18, fontweight='bold', color='black')   # Y-axis label styling
-    plt.xticks(fontsize=18)  # Set the font size of x-axis ticks
-    plt.yticks(fontsize=18)  # Set the font size of y-axis ticks
+    # plt.xticks(fontsize=18)  # Set the font size of x-axis ticks
+    # plt.yticks(fontsize=18)  # Set the font size of y-axis ticks
+
+    plt.xticks(ticks=range(int(ideal_x - 10), int(ideal_y + 11), 5),fontsize=18)  # Set the font size of x-axis ticks
+    plt.yticks(ticks=range(int(ideal_y - 10), int(ideal_y + 11), 5),fontsize=18)  # Set the font size of y-axis ticks
 
 
     plt.legend(
@@ -140,19 +144,19 @@ def plot_final_pos(run_folder, final_positions, ideal_x, ideal_y):
     
 
     plt.grid(True, color='black', linestyle='--', linewidth=0.5)  # Grid line style
-    plt.xlim(ideal_x - 50, ideal_x + 50)
-    plt.ylim(ideal_y - 50, ideal_y + 50)
+    plt.xlim(ideal_x - 10, ideal_x + 10)
+    plt.ylim(ideal_y - 10, ideal_y + 10)
     plt.tight_layout()
 
     # Save and close the plot
-    plt.savefig(f"{run_folder}/final_positions.pdf")  # Save as PDF
+    plt.savefig(f"{run_folder}/final_positions.PNG")  # Save as PDF
     plt.close()
 
 # Main script
 def main():
     # Input CSV file path
-    input_csv = "/home/arasul42@tntech.edu/works/rraaa-sim/vehicles/jaxguam/runs/run_106/simulation_results.csv"  # Update with your CSV file path
-    output_folder = "/home/arasul42@tntech.edu/works/rraaa-sim/plots"  # Folder to save plots
+    input_csv = "/home/arasul42@tntech.edu/works/rraaa-sim/vehicles/jaxguam/runs/run_228/simulation_results.csv"  # Update with your CSV file path
+    output_folder = "/home/arasul42@tntech.edu/works/rraaa-sim/plots/without_arrow"  # Folder to save plots
     os.makedirs(output_folder, exist_ok=True)
 
     # Read data from CSV

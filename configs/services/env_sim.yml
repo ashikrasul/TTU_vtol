@@ -4,9 +4,9 @@ ros:
   ros_package: rraaa
   launch_file: run.launch
 weather:
-      weather_flag: custom       # Options: 'default' or 'custom'
-      lighting_flag: custom    # Options: 'default' or 'custom'
-      type: HardRainSunset     # Required if weather_flag is 'custom'
+      weather_flag: default       # Options: 'default' or 'custom'
+      lighting_flag: default    # Options: 'default' or 'custom'
+      type: WetSunset     # Required if weather_flag is 'custom'
       lighting:                   # Required if lighting_flag is 'custom'
         cloudiness: 90.0          #
         precipitation: 70.0        # 
