@@ -39,6 +39,28 @@ git submodule update --init --recursive
 sudo chmod 666 /var/run/docker.sock
 #docker access to host display
 xhost +local:docker
+
+#update google map Api Key 
+cd helipad_detection
+echo -n "api_key" > api.csv
+#generate the dataset for training
+python3 csv_to_meta.py
+
+==> copy the absolute path of dataset folder inside data/subset_5.yml, replace the data: field
+
+cd rraaa-sim 
+
+#run the bayesian optimization loop along with training & simulation
+
+python3 train_simulate_optimize.py
+
+
+
+
+
+
+
+
 python3 rraaa.py configs/single-static.yml
 ```
 
