@@ -9,7 +9,7 @@ services:
     command: /bin/bash -c 'source /opt/ros/noetic/setup.bash && roscore'
 
   carla:
-        image: stargaze0909/carla_uli_ubuntu20:latest
+        image: arasul42/carla_ue5:latest
         logging:
           options:
             max-size: "10m"
@@ -22,7 +22,7 @@ services:
             - "2000:2000"
             - "2001:2001"
             - "2002:2002"
-        command: ./CarlaUE4.sh #-quality-level=Low -carla-rpc-port=2000
+        command: /home/carla/Linux/CarlaUnreal.sh #-quality-level=Low -RenderOffScreen
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix:rw
             - /etc/localtime:/etc/localtime

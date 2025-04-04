@@ -88,9 +88,11 @@ RUN apt update && apt install -y python3-pip &&\
         torchvision \
         wstool
 
-COPY carla-0.9.15-cp38-cp38-linux_x86_64.whl /carla_python_api/carla-0.9.15-cp38-cp38-linux_x86_64.whl
+# COPY carla-0.9.15-cp38-cp38-linux_x86_64.whl /carla_python_api/carla-0.9.15-cp38-cp38-linux_x86_64.whl
+
+COPY carla-0.10.0-cp38-cp38-linux_x86_64.whl /carla_python_api/carla-0.10.0-cp38-cp38-linux_x86_64.whl
 WORKDIR /carla_python_api
-RUN pip install carla-0.9.15-cp38-cp38-linux_x86_64.whl
+RUN pip install carla-0.10.0-cp38-cp38-linux_x86_64.whl
 # RUN python3 -c 'import carla'
 
 # COPY yolov5 /yolov5

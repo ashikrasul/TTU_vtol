@@ -7,10 +7,10 @@
 -->
 <launch>
 
-	<node pkg="rraaa" type="node_carla.py" name="carla_node" output="screen" respawn="true" respawn_delay="5"/>
+	<node pkg="rraaa" type="node_carla.py" name="carla_node" output="screen" respawn="true" respawn_delay="10"/>
 
 
-	<node pkg="rraaa" type="node_input_display.py" name="display_node" output="screen" respawn="true" respawn_delay="5"/>
+	<node pkg="rraaa" type="node_input_display.py" name="display_node" output="screen" respawn="true" respawn_delay="10"/>
 
 	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
 		<param name="resolution" value="0.5" />
