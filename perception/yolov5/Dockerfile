@@ -44,7 +44,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --upgrade pip
 # RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu114
 # RUN pip3 install rosdep
-RUN pip3 install torch torchvision numpy pillow matplotlib ultralytics filterpy
+RUN pip3 install --no-cache-dir --ignore-installed torch torchvision numpy pillow matplotlib ultralytics filterpy pandas
+
 
 
 RUN mkdir -p /catkin_ws/src
