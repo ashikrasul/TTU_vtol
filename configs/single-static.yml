@@ -37,7 +37,7 @@ ego_vehicle:
   perception_vel_topic: /controller_node/vel_cmd
   perception_control_topic: /controller_node/tgt_box_rcvd
   planner_topic: /controller_node/vel_cmd
-  planner: simple # One of ["simple", "a_star"]
+  planner: a_star # One of ["simple", "a_star"]
   include: ego_vehicle/jaxguam.yml
   debug: false
   location:
@@ -177,6 +177,6 @@ adv_objects:
 # Target point
 target:
   type: relative # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location.
-  x: 0
-  y: 0
-  z: -45
+  x: -50
+  y: -50
+  z: 0
