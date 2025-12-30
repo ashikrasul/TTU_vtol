@@ -69,24 +69,28 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 RUN echo "source /opt/ros/${ROS_VERSION}/setup.bash" >> $HOME/.bashrc && \
      echo "source $HOME/simulator/devel/setup.bash" >> $HOME/.bashrc
 
-RUN apt update && apt install -y python3-pip &&\
-    \
-    pip install \
-        extensisq \
-        opencv-python \
-        pandas \
-        pygame \
-        rosdep \
-        rosinstall \
-        rosinstall-generator \
-        scikit-spatial \
-        scipy \
-        setuptools \
-        typing_extensions \
-        torch \
-        torchaudio \
-        torchvision \
-        wstool
+RUN apt-get update && apt-get upgrade -y
+
+RUN apt update && apt install -y python3-pip
+
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install "numpy==1.24.4" && \
+    python3 -m pip install "extensisq<0.7" && \
+    python3 -m pip install \
+    opencv-python \
+    pandas \
+    pygame \
+    rosdep \
+    rosinstall \
+    rosinstall-generator \
+    scikit-spatial \
+    scipy \
+    typing_extensions \
+    torch \
+    torchaudio \
+    torchvision \
+    wstool
+
 
 # COPY carla-0.9.15-cp38-cp38-linux_x86_64.whl /carla_python_api/carla-0.9.15-cp38-cp38-linux_x86_64.whl
 
