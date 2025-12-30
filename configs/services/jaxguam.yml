@@ -5,7 +5,7 @@ ros:
   rosrun_files:
    - landing_controller.py
   # #  - run_simulator.py
-  #  - land_vtol.py
+   - land_vtol.py
 
 
     

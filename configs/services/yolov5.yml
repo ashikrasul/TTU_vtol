@@ -4,4 +4,4 @@ ros:
   ros_package: yolov5
   rosrun_files:
   - node_yolo.py
-  - ppo_error.py
+  # - ppo_error.py
