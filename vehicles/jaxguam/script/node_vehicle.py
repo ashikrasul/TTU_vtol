@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/py310ros
 
 import functools as ft
 import numpy as np

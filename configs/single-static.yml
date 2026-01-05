@@ -41,9 +41,9 @@ ego_vehicle:
   include: ego_vehicle/jaxguam.yml
   debug: false
   location:
-    x: -120
-    y: 110
-    z: 100
+    x: -125
+    y: 210
+    z: 150
   velocity:
     x: 0
     y: 0
@@ -175,8 +175,8 @@ adv_objects:
     #   model: vehicle.mercedes.sprinter
 
 # Target point
-target:
-  type: relative # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location.
-  x: -50
-  y: -50
-  z: 0
+# target:
+#   type: relative # One of ["absolute", "relative"]. Absolute -- absolute in CARLA's global coordinate frame. Relative -- relative to the vehicle's starting location.
+#   x: -50
+#   y: -50
+#   z: 0

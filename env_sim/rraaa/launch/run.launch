@@ -7,7 +7,10 @@
 -->
 <launch>
 
-	<node pkg="rraaa" type="node_carla.py" name="carla_node" output="screen" respawn="true" respawn_delay="10"/>
+
+	<node pkg="rraaa" type="node_carla.py" name="carla_node" output="screen" respawn="false" respawn_delay="10"
+		args="--host 127.0.0.1 -p 2000 -n 0 -w 0 --safe" />
+
 
 
 	<node pkg="rraaa" type="node_input_display.py" name="display_node" output="screen" respawn="true" respawn_delay="10"/>
@@ -52,3 +55,4 @@
 	<!-- <node pkg="rraaa" type="node_target.py" name="target" output="screen"/> -->
 
 </launch>
+

@@ -11,6 +11,7 @@ def fnc_callback(msg):
     TRACKING_ARRAY_RECEIVED = msg
 
 P_gain = 0.06
+P_gain_z= 0.1
 I_gain = 0.0000 # 0.0001
 D_gain = 0.0000 # 0.0001
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
 
                 CTR_X_POS = 224
                 CTR_Y_POS = 224
-                AREA_SIZE = 50
+                AREA_SIZE = 80
 
                 ### Calculate error ###
                 error_x = x_ctr - CTR_X_POS
@@ -93,17 +94,26 @@ if __name__ == '__main__':
                 ### PID control signals ###
                 cmd_vx = P_gain * error_x + I_gain * integral_x + D_gain * derivative_x
                 cmd_vy = P_gain * -error_y + I_gain * integral_y + D_gain * -derivative_y
-                cmd_vz = 0.1 * error_z
+                cmd_vz = P_gain_z * error_z
                 ### Clipping ###
                 cmd_vx = np.clip(cmd_vx, -10, 10)
                 cmd_vy = np.clip(cmd_vy, -10, 10)
+                cmd_vz = np.clip(cmd_vz, -1.5, 1.5)
+
+                print(error_z)
+
+                MIN_APPROACH_SPEED = -1  # tune this
+
+                if error_z < 0 and abs(cmd_vx) < .25 and abs(cmd_vy) < .25:  # target still too small -> must approach
+                    cmd_vz = min(cmd_vz, MIN_APPROACH_SPEED)
+                
                 cmd_vz = np.clip(cmd_vz, -1.5, 1.5)
 
                 vel_cmd_tracking.y = cmd_vx  # if target is at the right then generate positive cmd_vx
                 vel_cmd_tracking.x = cmd_vy  # if target is at the above then generate positive cmd_vy
                 vel_cmd_tracking.z = cmd_vz  # if target is small then generate positive cmd_vz
 
-                # print('vx', cmd_vx, 'vy', cmd_vy, 'vz', cmd_vz)
+                print('vx', cmd_vx, 'vy', cmd_vy, 'vz', cmd_vz)
 
             else:
                 vel_cmd_tracking.x = 0

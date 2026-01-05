@@ -58,9 +58,39 @@ def run_carla_node(args, client):
     # rosnode node initialization
     rospy.init_node('carla_node')
     rospy.set_param('tracking_control', False)
+    
 
-    environment = Environment(args, client, config)
+    # --- wait for CARLA server to be ready ---
+    world = None
+    last_err = None
+    for i in range(60):  # up to ~60s
+        try:
+            world = client.get_world()
+            break
+        except Exception as e:
+            last_err = e
+            time.sleep(1)
+
+    if world is None:
+        raise RuntimeError(f"CARLA not ready (get_world failed): {last_err}")
+
+    # --- create Environment with retry (traffic spawn can fail transiently) ---
+    environment = None
+    last_err = None
+    for i in range(5):
+        try:
+            environment = Environment(args, client, config)
+            break
+        except Exception as e:
+            last_err = e
+            log.error(f"Environment init failed (attempt {i+1}/5): {e}")
+            time.sleep(2)
+
+    if environment is None:
+        raise RuntimeError(f"Environment init failed after retries: {last_err}")
+
     _ = GracefulShutdown(environment)
+
 
 
     rospy.set_param('reset_called', False)

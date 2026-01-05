@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/py310ros
 import os
 import time
 import yaml

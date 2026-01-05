@@ -1,4 +1,4 @@
-start_delay: 1
+start_delay: 15
 ros:
   workspace: /catkin_ws
   ros_package: rraaa

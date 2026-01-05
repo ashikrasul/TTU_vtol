@@ -166,13 +166,13 @@ def run_input_node(args):
     # Getting the world and
     display_man = DisplayManager(grid_size=[3, 3], window_size=[args.width, args.height])
 
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_overview/image_raw'}, display_pos=[0, 1], display_scale=1)
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_front/image_raw'}, display_pos=[1, 1])
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_left/image_raw'}, display_pos=[1, 0])
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_right/image_raw'}, display_pos=[1, 2])
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_back/image_raw'}, display_pos=[2, 1])
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_up/image_raw'}, display_pos=[0, 3])
-    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_down/image_raw'}, display_pos=[0, 2])
+    ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_overview/image_raw'}, display_pos=[0, 2], display_scale=1)
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_front/image_raw'}, display_pos=[1, 1])
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_left/image_raw'}, display_pos=[1, 0])
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_right/image_raw'}, display_pos=[1, 2])
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_back/image_raw'}, display_pos=[2, 1])
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_up/image_raw'}, display_pos=[0, 3])
+    # ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/carla_node/cam_down/image_raw'}, display_pos=[0, 2])
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/yolo_node/sort_mot_frame'}, display_pos=[0, 0])
     ROSImageListenNRenderer(display_man, 'ROSSubimage', {'ros_topic':'/yolo_node/yolo_pred_frame'}, display_pos=[0, 1])
 

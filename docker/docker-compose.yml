@@ -8,33 +8,96 @@ services:
     network_mode: host
     command: /bin/bash -c 'source /opt/ros/noetic/setup.bash && roscore'
 
+  # carla:
+  #       image: arasul42/carla_ue5:latest
+  #       logging:
+  #         options:
+  #           max-size: "10m"
+  #           max-file: "3"
+  #       privileged: true
+  #       environment:
+  #           SDL_VIDEODRIVER: x11
+  #           DISPLAY: $DISPLAY
+  #       ports:
+  #           - "2000:2000"
+  #           - "2001:2001"
+  #           - "2002:2002"
+  #       # command: /home/carla/Linux/CarlaUnreal.sh
+  #       command: >
+  #         bash -lc "mkdir -p /tmp/runtime-root && chmod 0700 /tmp/runtime-root &&
+  #                 exec /home/carla/Linux/CarlaUnreal.sh -RenderOffScreen -quality-level=Low"
+  #       volumes:
+  #           - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #           - /etc/localtime:/etc/localtime
+  #           - /etc/timezone:/etc/timezone
+  #           - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+  #       shm_size: "2gb"
+  #       device_requests:
+  #       - driver: nvidia
+  #         count: all
+  #         capabilities: [gpu]
+  #       restart: unless-stopped
+  #       deploy:
+  #         resources:
+  #           reservations:
+  #             devices:
+  #               - driver: nvidia
+  #                 count: "all"
+  #                 capabilities: [compute,utility,graphics,display]
+
   carla:
-        image: arasul42/carla_ue5:latest
-        logging:
-          options:
-            max-size: "10m"
-            max-file: "3"
-        privileged: true
-        environment:
-            SDL_VIDEODRIVER: x11
-            DISPLAY: $DISPLAY
-        ports:
-            - "2000:2000"
-            - "2001:2001"
-            - "2002:2002"
-        command: /home/carla/Linux/CarlaUnreal.sh #-quality-level=Low -RenderOffScreen
-        volumes:
-            - /tmp/.X11-unix:/tmp/.X11-unix:rw
-            - /etc/localtime:/etc/localtime
-            - /etc/timezone:/etc/timezone
-            - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
-        deploy:
-          resources:
-            reservations:
-              devices:
-                - driver: nvidia
-                  count: "all"
-                  capabilities: [compute,utility,graphics,display]
+    image: arasul42/carla_ue5:latest
+
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    privileged: true
+    restart: unless-stopped
+    shm_size: "2gb"
+
+    # GPU access (Compose v2)
+    gpus: all
+
+    environment:
+      - DISPLAY=${DISPLAY}
+      - SDL_VIDEODRIVER=x11
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
+      - XDG_RUNTIME_DIR=/tmp/runtime-root
+      - QT_X11_NO_MITSHM=1
+      # Helps some OpenGL/Vulkan paths in containers
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      # Optional: reduce UE shader spam / sometimes helps stability
+      - UE_LOGGING=1
+
+    ports:
+      - "2000:2000"
+      - "2001:2001"
+      - "2002:2002"
+
+    command: >
+      bash -lc "
+        mkdir -p /tmp/runtime-root && chmod 0700 /tmp/runtime-root &&
+        exec /home/carla/Linux/CarlaUnreal.sh
+          -quality-level=Low
+          -ResX=640 -ResY=360
+          -fps=5
+          -nosound
+      "
+
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d:ro
+
+
+
+    
+
+
 
   env_sim:
     container_name: env_sim
@@ -43,11 +106,18 @@ services:
       dockerfile: Dockerfile
     environment:
       - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - XDG_RUNTIME_DIR=/tmp/runtime-root
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
       - SERVICE_NAME=env_sim
     volumes:
-        - /tmp/.X11-unix:/tmp/.X11-unix:rw
-        - ../env_sim:/catkin_ws/src/env_sim
-        - ../utils:/catkin_ws/src/env_sim/rraaa/script/utils
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ../env_sim:/catkin_ws/src/env_sim
+      - ../utils:/catkin_ws/src/env_sim/rraaa/script/utils
+      - /etc/localtime:/etc/localtime
+      - /etc/timezone:/etc/timezone
+      - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
     privileged: true
     network_mode: host
     devices:
@@ -57,6 +127,14 @@ services:
     depends_on:
       - roscore
     working_dir: /catkin_ws/src/env_sim
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: "all"
+              capabilities: [compute,utility,graphics,display]
+
 
   sim_control:
     container_name: sim_control
@@ -94,17 +172,24 @@ services:
     stdin_open: true
     depends_on:
       - roscore
-    working_dir: /catkin_ws/src/jax_guam
+    working_dir: /catkin_ws/src/jaxguam
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
       - SERVICE_NAME=jaxguam
+    command: >
+      bash -lc "source /opt/ros/noetic/setup.bash &&
+              source /opt/conda/etc/profile.d/conda.sh &&
+              conda activate py310 &&
+              tail -f /dev/null"
 
   yolov5:
     container_name: yolov5
-    build:
-      context: ../perception/yolov5
-      dockerfile: Dockerfile
+    image: yolov5:latest
+    # build:
+    #   context: ../perception/yolov5
+    #   dockerfile: Dockerfile
+    command: /bin/bash
     volumes:
         - ../perception/yolov5:/catkin_ws/src/yolov5
         - ../utils:/catkin_ws/src/yolov5/script/utils
@@ -128,8 +213,12 @@ services:
       context: ../ground_station
       dockerfile: Dockerfile
     volumes:
-        - ../ground_station:/catkin_ws/src/ground_station
-        - ../utils:/catkin_ws/src/ground_station/script/utils
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/localtime:/etc/localtime
+      - /etc/timezone:/etc/timezone
+      - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+      - ../ground_station:/catkin_ws/src/ground_station
+      - ../utils:/catkin_ws/src/ground_station/script/utils
     privileged: true
     network_mode: host
     devices:
@@ -140,4 +229,16 @@ services:
       - roscore
     working_dir: /catkin_ws/src/ground_station
     environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - XDG_RUNTIME_DIR=/tmp/runtime-root
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
       - SERVICE_NAME=ground_station
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: "all"
+              capabilities: [compute,utility,graphics,display]

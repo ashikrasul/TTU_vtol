@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/py310ros
 import numpy as np
 import rospy
 from std_msgs.msg import Float32MultiArray

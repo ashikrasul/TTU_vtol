@@ -4,4 +4,5 @@ ros:
   ros_package: yolov5
   rosrun_files:
   - node_yolo.py
+  - landing_controller.py
   # - ppo_error.py

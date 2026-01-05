@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/py310ros
 
 from loguru import logger
 

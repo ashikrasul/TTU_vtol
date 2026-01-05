@@ -72,7 +72,7 @@ yolo_directory = os.path.expanduser('~/../catkin_ws/src/yolov5/models')
 
 
 #changes made for bayesian OPT Looping 
-yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/models/yolo34.pt')
+yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/models/yolo171.pt')
 
 YOLO_MODEL = YOLO(yolo_path) # Yolo v8
 # YOLO_MODEL = YOLO("yolo_param/tasnim/best1.pt") # <--- This is Yolo v5
