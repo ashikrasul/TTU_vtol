@@ -47,7 +47,7 @@ This repository extends **[AirTaxiSim](https://github.com/CPS-IL/airtaxisim)**, 
 python3 -m pip install loguru
 ```
 
-## Quick Start
+## 🚀 Quick Start
 ### Clone this repository with submodules.
 
 ```bash
@@ -66,6 +66,33 @@ xhost +local:docker
 ``` 
 python3 rraaa.py configs/single-static.yml
 ```
+
+###  *QuadPlane Deployment Framework*
+<table>
+  <tr>
+    <td>
+      <img src="doc/images/vtol_fullPEG.png" alt="" width="800"/>
+      <p align="center">QuadPlane Prototype</p>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td>
+      <img src="doc/images/loca_dist.png" alt="" width="400"/>
+      <p align="center">Avionics and Jetson Integration</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="doc/images/avionics2.png" alt="" width="400"/>
+      <p align="center">Avionics and Jetson Integration</p>
+    </td>
+  </tr>
+</table>
+
+
 
 ## 📖 Citation
 
