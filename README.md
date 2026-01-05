@@ -6,15 +6,13 @@ This repository is a work-in-progress SITL simulator for autonomous air taxis.
 <table>
   <tr>
     <td>
-      <img src="doc/images/functional_diagram.jpeg" alt="Functional Diagram" width="400"/>
+      <img src="doc/images/landing_simu.png" alt="Landing in Carla UE5" width="800"/>
       <p align="center">Functional Diagram</p>
-    </td>
-    <td>
-      <img src="doc/images/current_state.jpeg" alt="Current State" width="400"/>
-      <p align="center">Current State</p>
     </td>
   </tr>
 </table>
+
+
 
 
 ### Prereqs
