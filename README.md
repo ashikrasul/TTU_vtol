@@ -26,10 +26,12 @@ This repository extends **[AirTaxiSim](https://github.com/CPS-IL/airtaxisim)**, 
 | OS | Ubuntu **20.04.6 LTS** or **22.04.4 LTS** |
 | GPU | NVIDIA GPU (RTX series recommended) |
 | Compute | CUDA support required |
-| Software | Docker + NVIDIA Container Toolkit |
+| Software   | Docker + NVIDIA Container Toolkit |
+| Disk Space | 100 GB                            |
 
 > 📄 Detailed installation guide:  
-> **[doc/tools_installation.md](doc/tools_installation.md)**
+> **[Docker Installation on Linux](https://docs.docker.com/engine/install/ubuntu/)**
+> **[NVIDIA Container Toolkit Installation](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)**
 
 
 > Python packages: 
