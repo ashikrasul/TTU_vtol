@@ -185,7 +185,7 @@ services:
 
   yolov5:
     container_name: yolov5
-    image: yolov5:latest
+    image: arasul42/yolov5
     # build:
     #   context: ../perception/yolov5
     #   dockerfile: Dockerfile
