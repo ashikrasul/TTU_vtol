@@ -1,7 +1,5 @@
-# RRAAA-Sim
-### Robust and Resilient Autonomy for Advanced Air Mobility
-
-This repository is an extension to AirTaxiSim which is based on CARLA UE4. In this work the simulator is updated to CARLA UE5.
+# 🛩️ UE5 AirTaxi Simulator
+### *A Photo Realistic UE5 Simulator for UAVs*
 
 <table>
   <tr>
@@ -12,38 +10,68 @@ This repository is an extension to AirTaxiSim which is based on CARLA UE4. In th
   </tr>
 </table>
 
+---
+## 📌 Overview
+
+This repository extends **[AirTaxiSim](https://github.com/CPS-IL/airtaxisim)**, which is based on CARLA UE4. In this work, the simulator is updated to **CARLA UE5**.
 
 
 
-### Prereqsites: 
 
-- Ubuntu 20.04.6 LTS or 22.04.4 LTS (Other versions untested, but should work.)
-- CUDA GPU for Pytorch and Unreal Engine, e.g., NVIDIA GeForce RTX series.
-- Install Docker and Nvidia Docker Toolkit, see [doc/tools_installation.md](doc/tools_installation.md) for detailed instructions.
-- Python packages
+
+## 🛠️ System Requirements
+
+| Component | Requirement |
+|---------|------------|
+| OS | Ubuntu **20.04.6 LTS** or **22.04.4 LTS** |
+| GPU | NVIDIA GPU (RTX series recommended) |
+| Compute | CUDA support required |
+| Software | Docker + NVIDIA Container Toolkit |
+
+> 📄 Detailed installation guide:  
+> **[doc/tools_installation.md](doc/tools_installation.md)**
+
+
+> Python packages: 
 ```bash
 python3 -m pip install loguru
 ```
 
-### Quick Start
-Clone this repository with submodules.
+## Quick Start
+### Clone this repository with submodules.
 
 ```bash
 git clone -b ue5_simulator --single-branch --recurse-submodules https://github.com/ashikrasul/TTU_vtol.git
 cd ttu_vtol
+
 #If you already cloned without submodules: 
 git submodule update --init --recursive
-#docker sudo access:
+```
+### Docker Sudo access and Host Diplay Access: 
+```
 sudo chmod 666 /var/run/docker.sock
-#docker access to host display
 xhost +local:docker
-#Run the simulator: It will build the containers and initiate perception based landing. 
+```
+### Build the containers and Run the simulator: 
+``` 
 python3 rraaa.py configs/single-static.yml
 ```
 
+## 📖 Citation
 
-### Contact
-  - [Ashik E Rasuk](mailto:ashik.rasul@outlook.edu)
+If you use this simulator in your research, please cite:
+
+```bibtex
+@article{rasul2025development,
+  title   = {Development and Testing for Perception Based Autonomous Landing of a Long-Range QuadPlane},
+  author  = {Rasul, Ashik E and Tasnim, Humaira and Kim, Ji Yu and Lim, Young Hyun and Schmitz, Scott and Jo, Bruce W and Yoon, Hyung-Jin},
+  journal = {arXiv preprint arXiv:2512.09343},
+  year    = {2025}
+}
+
+
+## Contact
+  - [Ashik E Rasul](mailto:ashik.rasul@outlook.edu)
   - [Hyung-Jin Yoon](mailto:stargaze221@gmail.com)
 
 
