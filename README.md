@@ -5,7 +5,7 @@
 
 </div>
 
-
+---
 
 ###  *UE5 AirTaxi Simulator*
 <table>
@@ -17,7 +17,6 @@
   </tr>
 </table>
 
----
 ## 📌 Overview
 
 This repository extends **[AirTaxiSim](https://github.com/CPS-IL/airtaxisim)**, which is based on CARLA UE4. In this work, the simulator is updated to **CARLA UE5**.
