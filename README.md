@@ -31,6 +31,7 @@ This repository extends **[AirTaxiSim](https://github.com/CPS-IL/airtaxisim)**, 
 
 > 📄 Detailed installation guide:  
 > **[Docker Installation on Linux](https://docs.docker.com/engine/install/ubuntu/)**
+
 > **[NVIDIA Container Toolkit Installation](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)**
 
 
@@ -70,10 +71,11 @@ If you use this simulator in your research, please cite:
   journal = {arXiv preprint arXiv:2512.09343},
   year    = {2025}
 }
-
+```
 
 ## Contact
   - [Ashik E Rasul](mailto:ashik.rasul@outlook.edu)
   - [Hyung-Jin Yoon](mailto:stargaze221@gmail.com)
+
 
 
