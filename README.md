@@ -68,29 +68,32 @@ python3 rraaa.py configs/single-static.yml
 ```
 
 ###  *QuadPlane Deployment Framework*
+---
+
 <table>
   <tr>
     <td>
-      <img src="doc/images/vtol_fullPEG.png" alt="" width="800"/>
+      <img src="doc/images/vtol_fullPEG.jpg" alt="" width="800"/>
       <p align="center">QuadPlane Prototype</p>
     </td>
   </tr>
 </table>
 
-<table>
+<table align="center">
   <tr>
-    <td>
-      <img src="doc/images/loca_dist.png" alt="" width="400"/>
-      <p align="center">Avionics and Jetson Integration</p>
+    <td align="center">
+      <img src="doc/images/loca_dist.png" width="400"/>
+      <br>
+      <b>Localization Distribution</b>
     </td>
-  </tr>
-  <tr>
-    <td>
-      <img src="doc/images/avionics2.png" alt="" width="400"/>
-      <p align="center">Avionics and Jetson Integration</p>
+    <td align="center">
+      <img src="doc/images/avionics2.png" width="400"/>
+      <br>
+      <b>Avionics and Jetson Integration</b>
     </td>
   </tr>
 </table>
+
 
 
 
