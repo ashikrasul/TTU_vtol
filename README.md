@@ -102,11 +102,12 @@ python3 rraaa.py configs/single-static.yml
 If you use this simulator in your research, please cite:
 
 ```bibtex
-@article{rasul2025development,
-  title   = {Development and Testing for Perception Based Autonomous Landing of a Long-Range QuadPlane},
-  author  = {Rasul, Ashik E and Tasnim, Humaira and Kim, Ji Yu and Lim, Young Hyun and Schmitz, Scott and Jo, Bruce W and Yoon, Hyung-Jin},
-  journal = {arXiv preprint arXiv:2512.09343},
-  year    = {2025}
+@inproceedings{rasul2026development,
+  title={Development and Testing for Perception-Based Autonomous Landing of a Long-Range QuadPlane},
+  author={Rasul, Ashik E and Tasnim, Humaira and Kim, Ji Yu and Lim, Young Hyun and Schmitz, Scott and Jo, Bruce W and Yoon, Hyung-Jin},
+  booktitle={AIAA SCITECH 2026 Forum},
+  pages={2172},
+  year={2026}
 }
 ```
 
