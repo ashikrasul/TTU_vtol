@@ -8,7 +8,7 @@
 
 
 ###  *UE5 AirTaxi Simulator*
-<table>
+<table align="center">
   <tr>
     <td>
       <img src="doc/images/landing_simu.png" alt="Landing in Carla UE5" width="800"/>
@@ -70,7 +70,7 @@ python3 rraaa.py configs/single-static.yml
 ###  *QuadPlane Deployment Framework*
 ---
 
-<table>
+<table align="center">
   <tr>
     <td>
       <img src="doc/images/vtol_fullPEG.jpg" alt="" width="800"/>
