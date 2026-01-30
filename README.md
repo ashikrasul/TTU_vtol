@@ -45,7 +45,7 @@ python3 -m pip install loguru
 
 ```bash
 git clone -b ue5_simulator --single-branch --recurse-submodules https://github.com/ashikrasul/TTU_vtol.git
-cd ttu_vtol
+cd TTU_vtol
 
 #If you already cloned without submodules: 
 git submodule update --init --recursive
