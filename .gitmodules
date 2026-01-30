@@ -6,7 +6,7 @@
 	url = https://github.com/oswinso/jax_guam.git
 [submodule "helipad_cat_dataset"]
 	path = helipad_cat_dataset
-	url = https://github.com/arasul42/helipad_detection
+	url = https://github.com/ashikrasul/helipad_detection
 [submodule "helipad_detection"]
 	path = helipad_detection
-	url = https://github.com/arasul42/helipad_detection.git
+	url = https://github.com/ashikrasul/helipad_detection.git
