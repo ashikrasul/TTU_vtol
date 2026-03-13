@@ -306,7 +306,7 @@ if __name__ == "__main__":
     rospy.init_node("simulation_monitor", anonymous=True)
     monitor = SimulationMonitor()
     N_STRATA = 3
-    SAMPLES_PER_STRATUM = 5
+    SAMPLES_PER_STRATUM = 1
 
     stratified_z = generate_stratified_z(
     z_min=z_min, z_max=z_max,

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import pygame
+import numpy as np
+from PIL import Image
 
 
 class DisplayManager:
@@ -33,6 +35,26 @@ class DisplayManager:
         for s in self.sensor_list:
             s.render()
         pygame.display.flip()
+
+    def save_screenshot(self, filename="screenshot.png", dpi=600):
+        raw = pygame.image.tostring(self.display, "RGB")
+        w, h = self.display.get_size()
+        img = Image.frombytes("RGB", (w, h), raw)
+        img.save(filename, dpi=(dpi, dpi))
+        print(f"Saved screenshot: {filename} ({w}x{h}px, {dpi} DPI)")
+
+    def save_row_raw(self, row=0, filename="row_raw.png", dpi=600):
+        """Stitch raw sensor data for a row — no upscaling."""
+        row_sensors = [s for s in self.sensor_list
+                       if hasattr(s, 'display_pos') and s.display_pos[0] == row
+                       and hasattr(s, 'data') and s.data is not None]
+        row_sensors.sort(key=lambda s: s.display_pos[1])
+
+        arrays = [s.data for s in row_sensors]
+        stitched = np.concatenate(arrays, axis=1)
+        img = Image.fromarray(stitched.astype(np.uint8))
+        img.save(filename, dpi=(dpi, dpi))
+        print(f"Saved {filename} — {img.size[0]}x{img.size[1]}px at {dpi} DPI")
 
     def destroy(self):
         for s in self.sensor_list:

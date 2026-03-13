@@ -1259,7 +1259,7 @@ class Environment():
             'RGBCamera',
             carla.Transform(carla.Location(x=0, z=-1.5), carla.Rotation(pitch=-90)),
             self.ego_vehicle,
-            {'fov': '90.0', 'image_size_x': '448', 'image_size_y': '448'}
+            {'fov': '90.0', 'image_size_x': '896', 'image_size_y': '896'}
         )
 
         # OVERVIEW camera (added back)
@@ -1268,7 +1268,7 @@ class Environment():
             'RGBCamera',
             carla.Transform(carla.Location(x=-1, z=7.0), carla.Rotation(pitch=-60)),
             self.ego_vehicle,
-            {'fov': '60.0', 'image_size_x': '600', 'image_size_y': '600'}
+            {'fov': '60.0', 'image_size_x': '896', 'image_size_y': '896'}
         )
 
         # Disable all other cameras explicitly

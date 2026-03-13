@@ -195,6 +195,13 @@ def run_input_node(args):
     while not rospy.is_shutdown():
         client_clock.tick_busy_loop(FREQ)
         display_man.render()
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F12:
+                display_man.save_row_raw(row=0, filename="/catkin_ws/src/env_sim/row_raw.png", dpi=600)
+            else:
+                pygame.event.post(event)
+
         input_control.tick(client_clock)
 
         #######################
