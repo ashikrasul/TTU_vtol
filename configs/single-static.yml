@@ -20,10 +20,10 @@ services:
     include: services/jaxguam.yml
   env_sim:
     include: services/env_sim.yml
-  ground_station:
-    include: services/ground_station.yml
-  sim_control:
-    include: services/sim_control.yml
+  # ground_station:
+  #   include: services/ground_station.yml
+  # sim_control:
+  #   include: services/sim_control.yml
   yolov5:
     include: services/yolov5.yml
 

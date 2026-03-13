@@ -78,3 +78,61 @@ def write_flattened_config(file_path, config):
     with open(file_path, 'w') as file:
         yaml.dump(config, file, default_flow_style=False)
     print(f"Config successfully written to {file_path}")
+
+
+
+def get_next_optimization_run_number(meta_file_path):
+    """
+    Reads the last optimization run number from the metadata file, increments it, and saves it back.
+    """
+    os.makedirs(os.path.dirname(meta_file_path), exist_ok=True)
+
+    # Read the last run number from the metadata file
+    last_run_number = 0
+    if os.path.exists(meta_file_path):
+        with open(meta_file_path, 'r') as f:
+            for line in f:
+                if line.startswith("optimization_run:"):
+                    last_run_number = int(line.split(":")[1].strip())
+                    break
+
+    # Increment the run number
+    next_run_number = last_run_number + 1
+
+    # Update the metadata file with the new run numberf
+    with open(meta_file_path, 'w') as f:
+        f.write(f"optimization_run: {next_run_number}\n")
+
+    print(f"Updated optimization run number to: {next_run_number}")
+    return next_run_number
+
+
+def update_metadata(fields: dict, meta_file_path: str):
+    """
+    Update flat metadata YAML file without removing existing fields.
+
+    Parameters
+    ----------
+    fields : dict
+        Dictionary of key-value pairs to update
+    meta_file_path : str
+        Path to metadata YAML file
+    """
+
+    os.makedirs(os.path.dirname(meta_file_path), exist_ok=True)
+
+    # Load existing metadata
+    if os.path.exists(meta_file_path):
+        with open(meta_file_path, "r") as file:
+            existing_data = yaml.safe_load(file) or {}
+    else:
+        existing_data = {}
+
+    # Update only provided fields
+    existing_data.update(fields)
+
+    # Write back to file
+    with open(meta_file_path, "w") as file:
+        yaml.dump(existing_data, file, sort_keys=False)
+
+    print(f"Metadata updated at {meta_file_path}")

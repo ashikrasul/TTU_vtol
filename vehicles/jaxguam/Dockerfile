@@ -178,6 +178,7 @@ RUN printf '%s\n' \
 '#!/usr/bin/env bash' \
 'set -e' \
 'source /opt/ros/noetic/setup.bash' \
+'[ -f /catkin_ws/devel/setup.bash ] && source /catkin_ws/devel/setup.bash' \
 'exec /opt/conda/bin/conda run -n py310 python "$@"' \
 > /usr/local/bin/py310ros \
  && chmod +x /usr/local/bin/py310ros
@@ -220,6 +221,10 @@ ENV ROS_ROOT=/opt/ros/noetic
 ENV ROS_PACKAGE_PATH=$ROS_ROOT/share
 ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
 ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
+
+RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
+    echo "source /catkin_ws/devel/setup.bash" >> /root/.bashrc && \
+    echo "source /opt/conda/etc/profile.d/conda.sh && conda activate py310" >> /root/.bashrc
 
 RUN mkdir -p /catkin_ws/src
 WORKDIR /catkin_ws

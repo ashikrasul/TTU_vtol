@@ -253,8 +253,16 @@ logs/
 
 /yolo_training/training_result
 /vehicles/jaxguam/runs
+/perception/yolov5/models
 /training_result
-
+/helipad_detection/dataset
 
 
 /utils/metadata_file_path.txt
+
+
+outputs/
+bo_plots/
+plots/
+*.pt 
+*.whl

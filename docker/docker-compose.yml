@@ -179,6 +179,8 @@ services:
       - SERVICE_NAME=jaxguam
     command: >
       bash -lc "source /opt/ros/noetic/setup.bash &&
+              cd /catkin_ws && catkin_make &&
+              source /catkin_ws/devel/setup.bash &&
               source /opt/conda/etc/profile.d/conda.sh &&
               conda activate py310 &&
               tail -f /dev/null"
@@ -189,7 +191,9 @@ services:
     # build:
     #   context: ../perception/yolov5
     #   dockerfile: Dockerfile
-    command: /bin/bash
+    command: >
+      bash -c "python3 -c 'import loguru' 2>/dev/null || python3 -m pip install loguru && exec /bin/bash"
+
     volumes:
         - ../perception/yolov5:/catkin_ws/src/yolov5
         - ../utils:/catkin_ws/src/yolov5/script/utils

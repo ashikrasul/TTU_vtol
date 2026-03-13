@@ -7,12 +7,13 @@ import csv
 from loguru import logger
 
 from utils import constants
+from utils.config import update_metadata
+import yaml
 
 
 
 
-
-ideal_x, ideal_y, ideal_z = -80, 75, 35
+ideal_x, ideal_y, ideal_z = -48, 134, 6
 
 def create_run_folder(base_dir="runs"):
     """Create a unique run folder (run_1, run_2, etc.)."""
@@ -176,6 +177,11 @@ def save_summary_to_csv_and_metadata(base_dir="runs", summary_file="performance_
     # Fetch Optimization_run value
     optimization_run = metadata.get("optimization_run", "N/A")
 
+
+
+
+
+
     # Update metadata
     metadata.update({
         "run_number": latest_run,
@@ -189,13 +195,18 @@ def save_summary_to_csv_and_metadata(base_dir="runs", summary_file="performance_
             file.write(f"{key}: {value}\n")
     logger.info(f"Metadata updated: {metadata_path}")
 
+    
+
     # Append results to CSV
-    summary_header = ["Run Number", "Std Dev (Position)", "Success Rate", "Optimization Run", "Model Name", "Scale", "HSV_V"]
+    summary_header = ["Run Number", "Std Dev (Position)", "Success Rate", "Optimization Run", "Model Name", "Scale", "HSV_V", "Test_model", "opt_success"]
     summary_row = [
         latest_run, f"{std_dev:.6f}", f"{success_rate:.6f}", optimization_run,
         metadata.get("model_name", "N/A"),
         metadata.get("scale", "N/A"),
-        metadata.get("hsv_v", "N/A")
+        metadata.get("hsv_v", "N/A"),
+        metadata.get("test_model", "N/A"), 
+        metadata.get("opt_success","N/A")
+
     ]
 
     file_exists = os.path.exists(summary_path)
@@ -206,3 +217,22 @@ def save_summary_to_csv_and_metadata(base_dir="runs", summary_file="performance_
         writer.writerow(summary_row)
 
     logger.info(f"Summary CSV updated: {summary_path}")
+
+
+
+    # # Load current metadata safely
+    # with open(metadata_path, "r") as f:
+    #     current_metadata = yaml.safe_load(f) or {}
+
+    # # Create blank version (preserve keys, blank values)
+    # blank_metadata = {key: "" for key in current_metadata.keys()}
+
+    # # Update metadata using centralized function
+    # update_metadata(
+    #     fields=blank_metadata,
+    #     meta_file_path=metadata_path
+    # )
+
+    # logger.info("All metadata values reset to blank using update_metadata().")
+
+

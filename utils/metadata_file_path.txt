@@ -1,4 +1,9 @@
-hsv_v: 0.005392366005023352
-model_name: yolo189.pt
-optimization_run: 24
-scale: 0.9960851162240227
+hsv_v: 0.5
+model_name: yolo319.pt
+optimization_run: 44
+scale: 0.1
+test_model: yolo313.pt
+run_number: run_250
+std_dev: nan
+success_rate: 0.0
+opt_success: 'False'

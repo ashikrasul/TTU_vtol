@@ -22,6 +22,12 @@ import cv2
 import matplotlib
 import random
 
+from utils.config import update_metadata
+
+
+
+from utils import constants
+
 import sys, os
 # sys.path.append('/home/sim/simulator/')
 # sys.path.append('/home/sim/simulator/yolov5')
@@ -69,10 +75,17 @@ yolo_directory = os.path.expanduser('~/../catkin_ws/src/yolov5/models')
 # yolo_path = get_latest_model(yolo_directory)
 # print(f"Latest model loaded: {os.path.basename(yolo_path)}")
 
-
-
 #changes made for bayesian OPT Looping 
-yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/models/yolo171.pt')
+yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/models/yolo313.pt')
+
+
+
+test_model_name = os.path.basename(yolo_path)
+
+update_metadata(
+    fields={"test_model": test_model_name},
+    meta_file_path=constants.metadata_file_path
+)
 
 YOLO_MODEL = YOLO(yolo_path) # Yolo v8
 # YOLO_MODEL = YOLO("yolo_param/tasnim/best1.pt") # <--- This is Yolo v5
@@ -128,7 +141,7 @@ def run_yolo_node(args):
 
             with torch.no_grad():
                 x_image = torch.FloatTensor(np_im).to(DEVICE).permute(2, 0, 1).unsqueeze(0)/255
-                results = YOLO_MODEL.predict(source=x_image, save=False, save_txt=False, verbose=False)  #
+                results = YOLO_MODEL.predict(source=x_image, conf=0.4, iou=0.7, save=False, save_txt=False, verbose=False)  #
                 cv2_img = results[0].plot()
                 prediction_df = results[0].to_df()
 
