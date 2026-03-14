@@ -121,6 +121,16 @@ class ContainerManager:
         self.config = config['services']
         self.compose_file = compose_file
         self.containers = []
+        # Active service keys — only the selected variant is started
+        self._active_keys = {
+            config.get('env_sim_key', 'env_sim'),
+            config.get('carla_key', 'carla_ue5'),
+        }
+        # All known variant groups — inactive ones are skipped
+        self._variant_groups = [
+            {'env_sim', 'env_sim_ue4'},
+            {'carla_ue5', 'carla_ue4'},
+        ]
         self._load_containers()
 
         for service in self.config:
@@ -134,6 +144,12 @@ class ContainerManager:
 
     def _load_containers(self):
         for service_name, service_config in self.config.items():
+            # Skip variants that are not the active selection
+            if any(service_name in group and service_name not in self._active_keys
+                   for group in self._variant_groups):
+                log.info(f"Skipping inactive variant: {service_name}")
+                continue
+
             if 'ros' in service_config:
                 ros_container = ROSContainer(service_name=service_name, compose_file=self.compose_file, service_config=service_config)
                 log.info(f"Loaded ROS container for service: {service_name}")

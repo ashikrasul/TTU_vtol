@@ -266,3 +266,5 @@ bo_plots/
 plots/
 *.pt 
 *.whl
+
+/bo_plots

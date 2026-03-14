@@ -1,5 +1,6 @@
 type: jaxguam
-model: vehicle.uli.cora
+model: vehicle.uli.cora  # UE5
+model_ue4: uli_cora       # UE4
 debug: false
 plot: false
 save_video: false

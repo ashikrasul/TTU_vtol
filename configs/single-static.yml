@@ -10,15 +10,80 @@ record_rosbag: false
 # integer value: run simulator for value number of iterations
 simulation_mode: simple
 
+env_sim_key: env_sim  #env_sim_ue4 for UE4-based sim, env_sim for UE5-based sim
+carla_key: carla_ue5  #carla_ue4 for UE4-based sim, carla_ue5 for UE5-based sim
+
 landing_threshold: 0.1 #  in meters
+
+# Ideal landing position (target) — used by run_simulator for success evaluation
+ideal_position:
+  ue5: {x: -48, y: 134, z: 7}
+  ue4: {x: -80, y:  75, z: 35}
+
+# Landing success tolerances (meters)
+landing_tolerance:
+  x: 4
+  y: 4
+  z: 2
+
+# Episode timing (seconds)
+episode_timeout: 150        # max time per episode before declaring failure
+zero_vel_stop_sec: 5        # stop if velocity is zero for this many seconds
+
+# Initial position sampling bounds (offsets from ideal_position, meters)
+range_offset:
+  x: 40
+  y: 40
+  z: 120
+z_min_offset: 35            # z_min = ideal_z + z_min_offset
+
+# Init pose gating (run_simulator waits for vehicle to reach init pose)
+init_gating:
+  wait_timeout: 20.0        # seconds to wait for vehicle to reach init pose
+  fresh_msg_max_age: 0.5    # max age (seconds) of pose message to be considered valid
+  tol_xy: 2.0               # XY tolerance (meters)
+  tol_z: 3.0                # Z tolerance (meters)
+
+# ─── Bayesian Optimisation ──────────────────────────────────────────────────
+bayesian_optimisation:
+  use_dummy: false           # true = synthetic oracle (no YOLO), false = real pipeline
+  acq_type: UCB              # acquisition function: 'UCB' or 'EI'
+  kernel: rbf                # GP kernel: 'rbf' (smooth) or 'matern52' (safer default)
+
+  budget: 30                 # total BO queries including init points
+  n_init: 5                  # space-filling initialisation points
+  m_trials: 15               # simulated trials per BO query (must match run_simulator)
+
+  # GP hyperparameters (re-optimised automatically if optimise_hp: true)
+  gp:
+    length_scale: 0.20       # initial GP length-scale
+    variance: 2.0            # initial GP output variance
+    kappa: 1.5               # UCB exploration weight (higher = more exploration)
+                             # 1.5 good for budget=30; try 2.0 for more exploration
+
+  optimise_hp: false         # re-optimise length_scale & variance via marginal likelihood
+  hp_interval: 5             # re-optimise every N active steps
+
+  n_grid: 22                 # candidate pool resolution (n_grid × n_grid = 484 points)
+  seed: 42                   # random seed for reproducibility
+  resume: false              # true = load from checkpoint and continue
+
+# ─── Stratified sampling (run_simulator) ────────────────────────────────────
+stratification:
+  n_strata: 3                # number of z-altitude bands
+  samples_per_stratum: 1     # episodes per stratum per BO query
 
 # Order of services here is also the order in which services are started
 services:
-  carla:
+  carla_ue5:
+    include: services/carla.yml
+  carla_ue4:
     include: services/carla.yml
   jaxguam:
     include: services/jaxguam.yml
   env_sim:
+    include: services/env_sim.yml
+  env_sim_ue4:
     include: services/env_sim.yml
   # ground_station:
   #   include: services/ground_station.yml

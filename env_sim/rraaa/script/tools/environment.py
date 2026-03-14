@@ -1196,7 +1196,12 @@ class Environment():
 
 
     def spawn_ego_vehicle(self):
-        ego_bp = self.world.get_blueprint_library().filter(self.config['ego_vehicle']['model'])[0]
+        carla_key = self.config.get('carla_key', 'carla_ue5')
+        if 'ue4' in carla_key:
+            model = self.config['ego_vehicle'].get('model_ue4', self.config['ego_vehicle']['model'])
+        else:
+            model = self.config['ego_vehicle']['model']
+        ego_bp = self.world.get_blueprint_library().filter(model)[0]
         ego_bp.set_attribute('role_name', 'ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
 
@@ -1459,12 +1464,13 @@ class Environment():
     def set_weather_from_config(self):
         # keep your original implementation
         try:
-            weather_flag = self.config['services']['env_sim']['weather'].get('weather_flag', 'default').lower()
-            lighting_flag = self.config['services']['env_sim']['weather'].get('lighting_flag', 'default').lower()
+            env_key = self.config.get('env_sim_key', 'env_sim')  # new
+            weather_flag = self.config['services'][env_key]['weather'].get('weather_flag', 'default').lower()
+            lighting_flag = self.config['services'][env_key]['weather'].get('lighting_flag', 'default').lower()
             weather = carla.WeatherParameters.ClearNoon
 
             if weather_flag == 'custom':
-                weather_type = self.config['services']['env_sim']['weather']['type']
+                weather_type = self.config['services'][env_key]['weather']['type']
                 presets = {
                     "ClearNoon": carla.WeatherParameters.ClearNoon,
                     "ClearSunset": carla.WeatherParameters.ClearSunset,
@@ -1482,7 +1488,7 @@ class Environment():
                 weather = presets.get(weather_type, carla.WeatherParameters.ClearNoon)
 
             if lighting_flag == 'custom':
-                lighting_config = self.config['services']['env_sim']['weather'].get('lighting', {})
+                lighting_config = self.config['services'][env_key]['weather'].get('lighting', {})
                 weather.cloudiness = lighting_config.get('cloudiness', weather.cloudiness)
                 weather.precipitation = lighting_config.get('precipitation', weather.precipitation)
                 weather.precipitation_deposits = lighting_config.get('precipitation_deposits', weather.precipitation_deposits)

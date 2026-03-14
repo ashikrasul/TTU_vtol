@@ -39,7 +39,7 @@ import gc
 import csv
 import numpy as np
 from scipy.stats import norm
-from utils.config import get_next_optimization_run_number, update_metadata
+from utils.config import load_yaml_file, get_next_optimization_run_number, update_metadata
 from utils import constants
 
 # ── Internal modules ──────────────────────────────────────────────────────────
@@ -419,42 +419,25 @@ def run_bo_2d(oracle_fn,
 
 if __name__ == '__main__':
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # MODE FLAG  ← the only setting you need to change between runs
-    #
-    #   True  → dummy mode: uses true_pi_2d(), no YOLO pipeline called.
-    #            Use this first to verify everything works end-to-end.
-    #
-    #   False → production mode: calls train_and_evaluate() via oracle_yolo.
-    #            Use this for real optimisation runs.
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    USE_DUMMY = False
+    # ── Load all settings from config ─────────────────────────────────────
+    config    = load_yaml_file(constants.merged_config_path)
+    bo        = config['bayesian_optimisation']
+    gp        = bo['gp']
 
-    # ── BO configuration ──────────────────────────────────────────────────
-    ACQ_TYPE      = 'UCB'    # 'EI' or 'UCB'
-                             # UCB recommended for noisy real experiments
-                             # EI recommended when noise is low (large m)
-
-    KERNEL        = 'rbf'    # 'rbf'      → smooth/analytic functions
-                             # 'matern52' → real blackbox (safer default)
-
-    BUDGET        = 30       # total queries including init
-    N_INIT        = 5        # space-filling initial points
-    M_TRIALS      = 15       # must match pipeline's internal trial count
-
-    LS            = 0.20     # initial length-scale  (re-optimised if OPTIMISE_HP=True)
-    VAR           = 2.0      # initial output variance
-    KAPPA         = 1.5      # UCB exploration weight
-                             # 1.5 empirically best for budget=30, smooth fn
-                             # increase to 2.0 for more exploration
-
-    N_GRID        = 22       # candidate pool: 22×22 = 484 points
-    SEED          = 42
-
-    OPTIMISE_HP   = False     # re-optimise ls, var via marginal likelihood
-    HP_INTERVAL   = 5        # every N active steps
-
-    RESUME        = False    # True → load from checkpoint and continue
+    USE_DUMMY   = bo['use_dummy']
+    ACQ_TYPE    = bo['acq_type']
+    KERNEL      = bo['kernel']
+    BUDGET      = bo['budget']
+    N_INIT      = bo['n_init']
+    M_TRIALS    = bo['m_trials']
+    LS          = gp['length_scale']
+    VAR         = gp['variance']
+    KAPPA       = gp['kappa']
+    OPTIMISE_HP = bo['optimise_hp']
+    HP_INTERVAL = bo['hp_interval']
+    N_GRID      = bo['n_grid']
+    SEED        = bo['seed']
+    RESUME      = bo['resume']
 
     # ── Snapshot steps for Figure 5 plot (0-indexed into active steps) ───
     n_active = BUDGET - N_INIT
@@ -468,19 +451,20 @@ if __name__ == '__main__':
     CONV_PATH       = f'./outputs/bo_{mode_tag}_{ACQ_TYPE}_Hyp_{OPTIMISE_HP}_convergence.png'
 
     # ── Select oracle based on flag ───────────────────────────────────────
+    from functools import partial
     if USE_DUMMY:
         print("=" * 60)
         print("  MODE: DUMMY (synthetic true_pi_2d)")
         print("  YOLO pipeline will NOT be called.")
         print("=" * 60)
-        oracle_fn = oracle_dummy
+        oracle_fn = partial(oracle_dummy, m=M_TRIALS)
         true_fn   = true_pi_2d    # passed to plotting for reference column
     else:
         print("=" * 60)
         print("  MODE: PRODUCTION (real YOLO pipeline)")
         print("  train_and_evaluate() will be called each iteration.")
         print("=" * 60)
-        oracle_fn = oracle_yolo
+        oracle_fn = partial(oracle_yolo, m=M_TRIALS)
         true_fn   = None           # no ground truth available in production
 
     history=[]

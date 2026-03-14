@@ -23,13 +23,32 @@ from utils.config import load_yaml_file, write_shared_tmp_file
 config_path = constants.merged_config_path
 temp_config_path = "/tmp/tmp_config.yml"
 
-ideal_x, ideal_y, ideal_z = -48, 134, 7
-# range_offset = [40, 40, 120]
-range_offset = [40, 40, 120]
+config = load_yaml_file(config_path)
 
-x_min, x_max = ideal_x - range_offset[0], ideal_x + range_offset[0]
-y_min, y_max = ideal_y - range_offset[1], ideal_y + range_offset[1]
-z_min, z_max = ideal_z + 35, ideal_z + range_offset[2]
+ue_variant      = 'ue4' if config.get('carla_key', 'carla_ue5') == 'carla_ue4' else 'ue5'
+ideal_x         = config['ideal_position'][ue_variant]['x']
+ideal_y         = config['ideal_position'][ue_variant]['y']
+ideal_z         = config['ideal_position'][ue_variant]['z']
+
+TOL_X           = config['landing_tolerance']['x']
+TOL_Y           = config['landing_tolerance']['y']
+TOL_Z           = config['landing_tolerance']['z']
+
+EPISODE_TIMEOUT     = config['episode_timeout']
+ZERO_VEL_STOP_SEC   = config['zero_vel_stop_sec']
+
+range_offset    = [config['range_offset']['x'], config['range_offset']['y'], config['range_offset']['z']]
+x_min, x_max    = ideal_x - range_offset[0], ideal_x + range_offset[0]
+y_min, y_max    = ideal_y - range_offset[1], ideal_y + range_offset[1]
+z_min, z_max    = ideal_z + config['z_min_offset'], ideal_z + range_offset[2]
+
+INIT_WAIT_TIMEOUT   = config['init_gating']['wait_timeout']
+FRESH_MSG_MAX_AGE   = config['init_gating']['fresh_msg_max_age']
+INIT_TOL_XY         = config['init_gating']['tol_xy']
+INIT_TOL_Z          = config['init_gating']['tol_z']
+
+N_STRATA            = config['stratification']['n_strata']
+SAMPLES_PER_STRATUM = config['stratification']['samples_per_stratum']
 
 initial_positions = []
 final_positions = []
@@ -37,12 +56,6 @@ landing_times = []
 landing_results = []
 final_euler_angles = []
 
-# --- Robust init gating parameters ---
-INIT_WAIT_TIMEOUT = 20.0     # seconds to wait for pose near requested init pose
-FRESH_MSG_MAX_AGE = 0.5      # seconds: pose must be this recent
-INIT_TOL_XY = 2.0            # meters: how close pose must be to init_x/init_y
-INIT_TOL_Z = 3.0             # meters: how close pose must be to init_z
-ZERO_VEL_STOP_SEC = 5
 STREAM_CHILD_OUTPUT = True  # set True if you want land_vtol.py output live
 
 target_reached = False
@@ -142,7 +155,7 @@ def wait_for_init_pose(monitor, rate, init_x, init_y, init_z, timeout=INIT_WAIT_
     return False, (pose, last_pose_time)
 
 
-def run_simulation(monitor, init_x, init_y, init_z, timeout=150):
+def run_simulation(monitor, init_x, init_y, init_z, timeout=EPISODE_TIMEOUT):
     monitor.reset()
 
     with open(config_path, "r") as file:
@@ -300,13 +313,11 @@ def generate_stratified_z(z_min, z_max, n_strata, samples_per_stratum, shuffle=T
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run simulations with adjustable timeout.")
-    parser.add_argument("--timeout", type=int, default=150, help="Timeout duration in seconds.")
+    parser.add_argument("--timeout", type=int, default=EPISODE_TIMEOUT, help="Timeout duration in seconds.")
     args = parser.parse_args()
 
     rospy.init_node("simulation_monitor", anonymous=True)
     monitor = SimulationMonitor()
-    N_STRATA = 3
-    SAMPLES_PER_STRATUM = 1
 
     stratified_z = generate_stratified_z(
     z_min=z_min, z_max=z_max,
@@ -341,9 +352,9 @@ if __name__ == "__main__":
 
             success = (
                 landing_pose is not None
-                and abs(landing_pose.z - ideal_z) < 2
-                and abs(landing_pose.x - ideal_x) <= 4
-                and abs(landing_pose.y - ideal_y) <= 4
+                and abs(landing_pose.z - ideal_z) < TOL_Z
+                and abs(landing_pose.x - ideal_x) <= TOL_X
+                and abs(landing_pose.y - ideal_y) <= TOL_Y
             )
             landing_results.append("Success" if success else "Fail")
 

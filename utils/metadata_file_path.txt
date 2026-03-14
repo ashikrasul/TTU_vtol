@@ -3,7 +3,7 @@ model_name: yolo319.pt
 optimization_run: 44
 scale: 0.1
 test_model: yolo313.pt
-run_number: run_253
-std_dev: 1.412563
-success_rate: 0.000000
+run_number: run_256
+std_dev: 25.158473
+success_rate: 0.0
 opt_success: 'False'
