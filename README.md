@@ -4,7 +4,7 @@
 <table>
   <tr>
     <td>
-      <img src="doc/images/landing_simu.png" alt="Landing in Carla UE5" width="800"/>
+      <img src="doc/images/row_raw.png" alt="Landing in Carla UE5" width="800"/>
       <p align="center">Landing in Carla UE5</p>
     </td>
   </tr>
