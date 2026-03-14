@@ -263,8 +263,10 @@ logs/
 
 outputs/
 bo_plots/
-plots/
-*.pt 
+plots/*
+!plots/laplace/
+!plots/plot_for_paper.py
+*.pt
 *.whl
 
 /bo_plots
