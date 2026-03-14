@@ -22,7 +22,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib.lines import Line2D
 
 # ── Exact same core as bo_optimizer.py — NO sklearn ──────────────────────────
-from gpc_core import (
+from utils.gpc_core import (
     build_kernel,
     laplace,
     predict_2d,

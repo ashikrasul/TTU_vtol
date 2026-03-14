@@ -43,7 +43,7 @@ from utils.config import load_yaml_file, get_next_optimization_run_number, updat
 from utils import constants
 
 # ── Internal modules ──────────────────────────────────────────────────────────
-from gpc_core import (
+from utils.gpc_core import (
     build_kernel,
     laplace,
     predict_2d,
@@ -51,7 +51,7 @@ from gpc_core import (
     acq_UCB,
     optimise_hyperparams,
 )
-from bo_plotting import plot_figure5, plot_convergence
+from utils.bo_plotting import plot_figure5, plot_convergence
 
 # ── True function (synthetic / debug only) ───────────────────────────────────
 def true_pi_2d(X):
