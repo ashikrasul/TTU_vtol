@@ -1,5 +1,5 @@
-# 🛩️ UE5 AirTaxi Simulator
-### *A Photo Realistic UE5 Simulator for UAVs*
+# 🛩️ UE5 AirTaxi Simulator — Bayesian Training Branch
+### *Iterative Training of Landing Pad Detector using Bayesian Optimization*
 
 <table>
   <tr>
@@ -13,7 +13,9 @@
 ---
 ## 📌 Overview
 
-This repository extends **[AirTaxiSim](https://github.com/CPS-IL/airtaxisim)**, which is based on CARLA UE4. In this work, the simulator is updated to **CARLA UE5**.
+This branch (`bayes_training`) extends the UE5 AirTaxi Simulator with a **Bayesian Optimization pipeline** for iterative training of the landing pad detector.
+
+The optimizer runs closed-loop experiments inside the CARLA simulator (UE4 or UE5) and intelligently selects the next training configuration to maximize detection performance.
 
 
 
@@ -44,19 +46,35 @@ python3 -m pip install loguru
 ### Clone this repository with submodules.
 
 ```bash
-git clone -b ue5_simulator --single-branch --recurse-submodules https://github.com/ashikrasul/TTU_vtol.git
-cd ttu_vtol
+git clone -b bayes_training --single-branch --recurse-submodules https://github.com/ashikrasul/TTU_vtol.git
+cd TTU_vtol
 
-#If you already cloned without submodules: 
+#If you already cloned without submodules:
 git submodule update --init --recursive
 ```
-### Docker Sudo access and Host Diplay Access: 
-```
+### Docker Sudo access and Host Display Access:
+```bash
 sudo chmod 666 /var/run/docker.sock
 xhost +local:docker
 ```
-### Build the containers and Run the simulator: 
-``` 
+### Run Bayesian Training with default parameters (UE5):
+```bash
+python3 bo_optimize.py
+```
+
+### Run with UE4:
+Edit `configs/single-static.yml`:
+```yaml
+env_sim_key: env_sim_ue4
+carla_key:   carla_ue4
+```
+Then run:
+```bash
+python3 bo_optimize.py
+```
+
+### Run the simulator standalone:
+```bash
 python3 rraaa.py configs/single-static.yml
 ```
 
