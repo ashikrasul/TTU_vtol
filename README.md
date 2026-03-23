@@ -78,6 +78,11 @@ python3 bo_optimize.py
 python3 rraaa.py configs/single-static.yml
 ```
 
+
+> 📄 YOLO model deployment on Jetson:  
+> **[Jetson Deployment Guide](https://docs.ultralytics.com/guides/nvidia-jetson/#what-is-nvidia-jetson)**
+
+
 ## 📖 Citation
 
 If you use this simulator in your research, please cite:
