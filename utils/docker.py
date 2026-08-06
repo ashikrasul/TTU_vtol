@@ -121,10 +121,12 @@ class ContainerManager:
         self.config = config['services']
         self.compose_file = compose_file
         self.containers = []
-        # Active service keys — only the selected variant is started
+        # Active service keys — only the selected variant is started.
+        # carla_key is intentionally excluded: rraaa.py always launches
+        # native CARLA (see utils.carla_native), so the docker carla_ue4/
+        # carla_ue5 services are always skipped below.
         self._active_keys = {
             config.get('env_sim_key', 'env_sim'),
-            config.get('carla_key', 'carla_ue5'),
         }
         # All known variant groups — inactive ones are skipped
         self._variant_groups = [

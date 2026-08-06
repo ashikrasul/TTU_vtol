@@ -12,6 +12,7 @@ landing_target_reached_file = 'target_reached.txt'
 simulation_status_file = os.path.join(base_dir, "tmp", "simulation_status.txt")
 
 metadata_file_path = os.path.join(base_dir,"metadata_file_path.txt")
+test_model_file_path = os.path.join(base_dir, "test_model.txt")
 
 ideal_x = -80
 ideal_y = 75

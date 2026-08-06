@@ -167,7 +167,7 @@ RUN ${CONDA_DIR}/bin/conda config --set always_yes yes --set changeps1 no \
 RUN ${CONDA_DIR}/bin/conda create -n py310 python=3.10 \
  && ${CONDA_DIR}/bin/conda run -n py310 python -m pip install --upgrade pip \
  && ${CONDA_DIR}/bin/conda run -n py310 python -m pip install \
-      numpy pandas extensisq jax jaxlib \
+      numpy pandas extensisq "jax[cuda12]" \
       pyyaml rospkg catkin_pkg
 
 # ------------------------------------------------------------

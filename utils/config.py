@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 import yaml
+import numpy as np
 
 from loguru import logger as log
 
@@ -107,6 +108,20 @@ def get_next_optimization_run_number(meta_file_path):
     return next_run_number
 
 
+def _to_native(obj):
+    if isinstance(obj, dict):
+        return {k: _to_native(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_to_native(v) for v in obj]
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
+
+
 def update_metadata(fields: dict, meta_file_path: str):
     """
     Update flat metadata YAML file without removing existing fields.
@@ -124,12 +139,16 @@ def update_metadata(fields: dict, meta_file_path: str):
     # Load existing metadata
     if os.path.exists(meta_file_path):
         with open(meta_file_path, "r") as file:
-            existing_data = yaml.safe_load(file) or {}
+            try:
+                existing_data = yaml.safe_load(file) or {}
+            except yaml.constructor.ConstructorError:
+                # Legacy file written with yaml.dump containing numpy tags; discard corrupt data
+                existing_data = {}
     else:
         existing_data = {}
 
-    # Update only provided fields
-    existing_data.update(fields)
+    # Update only provided fields; convert numpy types to plain Python
+    existing_data.update(_to_native(fields))
 
     # Write back to file
     with open(meta_file_path, "w") as file:

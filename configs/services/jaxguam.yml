@@ -3,10 +3,10 @@ ros:
   workspace: /catkin_ws
   ros_package: jaxguam
   rosrun_files:
-   - landing_controller.py
-   - run_simulator.py
+  #  - landing_controller_v2.py
+  #  - run_simulator.py
   #  - land_vtol.py
-  #  - node_vehicle.py 
+   - node_vehicle.py 
 
 
     

@@ -10,30 +10,34 @@ record_rosbag: false
 # integer value: run simulator for value number of iterations
 simulation_mode: simple
 
-env_sim_key: env_sim  #env_sim_ue4 for UE4-based sim, env_sim for UE5-based sim
-carla_key: carla_ue5  #carla_ue4 for UE4-based sim, carla_ue5 for UE5-based sim
+env_sim_key: env_sim_ue4  #env_sim_ue4 for UE4-based sim, env_sim for UE5-based sim
+carla_key: carla_ue4  #carla_ue4 for UE4-based sim, carla_ue5 for UE5-based sim
 
 landing_threshold: 0.1 #  in meters
 
 # Ideal landing position (target) — used by run_simulator for success evaluation
 ideal_position:
   ue5: {x: -48, y: 134, z: 7}
-  ue4: {x: -80, y:  75, z: 35}
+  ue4: {x: -80, y:  75, z: 39}
 
 # Landing success tolerances (meters)
 landing_tolerance:
   x: 4
   y: 4
-  z: 2
+  z: 3
 
 # Episode timing (seconds)
-episode_timeout: 150        # max time per episode before declaring failure
+episode_timeout: 170        # max time per episode before declaring failure
 zero_vel_stop_sec: 5        # stop if velocity is zero for this many seconds
+stuck_window_sec: 30        # declare no-progress failure if net 3D displacement
+                             # stays below stuck_displacement_m for this long
+stuck_displacement_m: 3      # meters
+stuck_min_altitude_m: 100     # only check for stuck/no-progress above this altitude (m)
 
 # Initial position sampling bounds (offsets from ideal_position, meters)
 range_offset:
-  x: 40
-  y: 40
+  x: 100
+  y: 100
   z: 120
 z_min_offset: 35            # z_min = ideal_z + z_min_offset
 
@@ -43,6 +47,8 @@ init_gating:
   fresh_msg_max_age: 0.5    # max age (seconds) of pose message to be considered valid
   tol_xy: 2.0               # XY tolerance (meters)
   tol_z: 3.0                # Z tolerance (meters)
+  max_retries: 3            # retries for "Init failed" (sim never spawned at
+                             # init pose) before giving up on this trial
 
 # ─── Bayesian Optimisation ──────────────────────────────────────────────────
 bayesian_optimisation:
@@ -50,9 +56,8 @@ bayesian_optimisation:
   acq_type: UCB              # acquisition function: 'UCB' or 'EI'
   kernel: rbf                # GP kernel: 'rbf' (smooth) or 'matern52' (safer default)
 
-  budget: 30                 # total BO queries including init points
-  n_init: 5                  # space-filling initialisation points
-  m_trials: 15               # simulated trials per BO query (must match run_simulator)
+  budget: 40                  # total BO queries including init points (smoke test)
+  n_init: 5                  # space-filling initialisation points (smoke test)
 
   # GP hyperparameters (re-optimised automatically if optimise_hp: true)
   gp:
@@ -66,19 +71,28 @@ bayesian_optimisation:
 
   n_grid: 22                 # candidate pool resolution (n_grid × n_grid = 484 points)
   seed: 42                   # random seed for reproducibility
-  resume: false              # true = load from checkpoint and continue
+  resume: true               # true = load from checkpoint and continue
+
+  reuse_models: true           # true = reuse existing trained models when (scale, hsv_v)
+                               # matches to 2dp; false = always train from scratch
+  model_pool_csv: ./perception/yolov5/models/model_pool.csv
+
+  cached_init:
+    use_cached: false         # true = load init points from manifest, skip retraining
+    path: ./perception/yolov5/models/init_models
+    manifest: manifest.yaml
 
 # ─── Stratified sampling (run_simulator) ────────────────────────────────────
 stratification:
-  n_strata: 3                # number of z-altitude bands
-  samples_per_stratum: 1     # episodes per stratum per BO query
+  n_strata: 2                # number of z-altitude bands (smoke test)
+  samples_per_stratum: 5    # episodes per stratum per BO query (smoke test)
 
 # Order of services here is also the order in which services are started
 services:
-  carla_ue5:
-    include: services/carla.yml
-  carla_ue4:
-    include: services/carla.yml
+  # carla_ue5:
+  #   include: services/carla.yml
+  # carla_ue4:
+  #   include: services/carla.yml
   jaxguam:
     include: services/jaxguam.yml
   env_sim:
@@ -106,9 +120,15 @@ ego_vehicle:
   include: ego_vehicle/jaxguam.yml
   debug: false
   location:
-    x: -125
-    y: 210
+    x: -75
+    y: 80
     z: 150
+  
+  rotation: 
+    roll: 0
+    pitch: 0
+    yaw: 0
+    
   velocity:
     x: 0
     y: 0

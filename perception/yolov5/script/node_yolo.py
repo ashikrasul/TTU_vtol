@@ -41,6 +41,24 @@ def get_latest_model(directory):
     return latest_file
 
 
+def get_model_from_metadata(directory, meta_file_path):
+    """Return model path from metadata (set by BO optimizer for both cached and trained models).
+    Falls back to the latest model in directory if metadata is missing or stale."""
+    import yaml
+    try:
+        with open(meta_file_path, "r") as f:
+            meta = yaml.safe_load(f) or {}
+        model_name = meta.get("model_name")
+        if model_name:
+            candidate = os.path.join(directory, model_name)
+            if os.path.exists(candidate):
+                return candidate
+    except Exception:
+        pass
+    # fallback: latest model by modification time
+    return get_latest_model(directory)
+
+
 
 
 
@@ -72,11 +90,11 @@ print(os.getcwd())
 
 yolo_directory = os.path.expanduser('~/../catkin_ws/src/yolov5/models')
 
-# yolo_path = get_latest_model(yolo_directory)
-# print(f"Latest model loaded: {os.path.basename(yolo_path)}")
+yolo_path = get_model_from_metadata(yolo_directory, constants.metadata_file_path)
+# yolo_path = os.path.join(yolo_directory, "yolo541.pt")
 
-#changes made for bayesian OPT Looping 
-yolo_path = os.path.expanduser('~/../catkin_ws/src/yolov5/models/yolo313.pt')
+# fallback (uncomment to always use latest by mtime instead of metadata):
+# yolo_path = get_latest_model(yolo_directory)
 
 
 
@@ -86,6 +104,9 @@ update_metadata(
     fields={"test_model": test_model_name},
     meta_file_path=constants.metadata_file_path
 )
+
+with open(constants.test_model_file_path, 'w') as _f:
+    _f.write(test_model_name)
 
 YOLO_MODEL = YOLO(yolo_path) # Yolo v8
 # YOLO_MODEL = YOLO("yolo_param/tasnim/best1.pt") # <--- This is Yolo v5

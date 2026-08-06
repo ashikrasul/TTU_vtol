@@ -14,6 +14,10 @@ Functions
 
   plot_convergence(histories, save_path, kappa)
       π̂_max vs iteration for EI and UCB side-by-side.
+
+  plot_acquisition_evolution(history, acq_type, save_path, kappa)
+      max(acquisition) vs active query step — shows how the acquisition
+      function's peak value rises/decays/plateaus over the BO run.
 """
 
 import numpy as np
@@ -274,7 +278,7 @@ def plot_figure5(history, acq_type, save_path,
         color='black', fontsize=11, fontweight='bold', y=1.02
     )
 
-    plt.savefig(save_path, dpi=150, bbox_inches='tight',
+    plt.savefig(save_path, dpi=600, bbox_inches='tight',
                 facecolor=fig.get_facecolor())
     print(f'  Saved → {save_path}')
     plt.close()
@@ -345,6 +349,73 @@ def plot_convergence(histories, save_path, kappa=1.5, true_fn=None):
     ax.set_axisbelow(True)
 
     plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.savefig(save_path, dpi=600, bbox_inches='tight', facecolor='white')
+    print(f'  Saved → {save_path}')
+    plt.close()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Acquisition-function evolution
+# ═══════════════════════════════════════════════════════════════════════════
+
+def plot_acquisition_evolution(history, acq_type, save_path, kappa=1.5):
+    """
+    Plot max(acquisition function) vs active query step for a single run.
+
+    Shows how the peak acquisition value evolves — typically high during
+    early exploration and decaying/plateauing as the surrogate converges
+    (useful alongside the early-stopping criterion in run_bo_2d).
+
+    Parameters
+    ----------
+    history   : list of dicts from run_bo_2d (each entry has 'acq_plot')
+    acq_type  : 'EI' or 'UCB'  (used for title and legend label)
+    save_path : output file path
+    kappa     : UCB exploration weight (used in legend label only)
+    """
+    import pandas as pd
+
+    indigo = '#3d3db5'
+    orange = '#f0a500'
+
+    line_labels = {
+        'EI':  'EI_π  (Laplace)',
+        'UCB': f'UCB  (κ = {kappa})',
+    }
+
+    acq_maxes = np.array([h['acq_plot'].max() for h in history])
+    steps     = np.arange(1, len(acq_maxes) + 1)
+    smoothed  = pd.Series(acq_maxes).rolling(window=5, center=True, min_periods=1).mean().values
+
+    label = line_labels[acq_type]
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig.patch.set_facecolor('white')
+    ax.set_facecolor('white')
+    for sp in ax.spines.values():
+        sp.set_color('#bbbbbb')
+        sp.set_linewidth(0.8)
+    ax.tick_params(labelsize=11)
+
+    ax.plot(steps, acq_maxes,
+            color=indigo, linewidth=1.0, linestyle='--',
+            marker='o', markersize=3.5, markerfacecolor=indigo,
+            alpha=0.85, label=label)
+    ax.plot(steps, smoothed,
+            color=orange, linewidth=2.0, linestyle='-', label=label)
+
+    ax.set_xlabel('Active query step', fontsize=11)
+    ax.set_ylabel('max(acquisition)', fontsize=11)
+    ax.set_title('Acquisition function value over iteration',
+                 fontsize=12, fontweight='bold')
+    ax.set_xlim(steps[0], steps[-1])
+    ax.yaxis.set_major_formatter(plt.FormatStrFormatter('%.2f'))
+    ax.legend([label], facecolor='white', edgecolor='#bbbbbb',
+              fontsize=11, framealpha=1, loc='upper right')
+    ax.grid(True, linewidth=0.4, color='#cccccc')
+    ax.set_axisbelow(True)
+
+    plt.tight_layout(pad=1.5)
+    plt.savefig(save_path, dpi=600, bbox_inches='tight', facecolor='white')
     print(f'  Saved → {save_path}')
     plt.close()

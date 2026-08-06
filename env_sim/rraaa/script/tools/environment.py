@@ -1201,7 +1201,14 @@ class Environment():
             model = self.config['ego_vehicle'].get('model_ue4', self.config['ego_vehicle']['model'])
         else:
             model = self.config['ego_vehicle']['model']
-        ego_bp = self.world.get_blueprint_library().filter(model)[0]
+        bps = list(self.world.get_blueprint_library().filter(model))
+        if not bps:
+            available = sorted(bp.id for bp in self.world.get_blueprint_library().filter('vehicle.*'))
+            raise RuntimeError(
+                f"No blueprint found for model '{model}'. "
+                f"Available vehicle blueprints: {available}"
+            )
+        ego_bp = bps[0]
         ego_bp.set_attribute('role_name', 'ego')
         spawn_point = random.choice(self.world.get_map().get_spawn_points())
 
@@ -1215,7 +1222,7 @@ class Environment():
             loc = carla.Location(self.config['ego_vehicle']['location']['x'],
                                  self.config['ego_vehicle']['location']['y'],
                                  self.config['ego_vehicle']['location']['z'])
-            rot = carla.Rotation(0, 0, 0)
+            rot = carla.Rotation(0, 180, 0)  # (pitch, yaw, roll); yaw=180
             spawn_point = carla.Transform(location=loc, rotation=rot)
         except KeyError:
             pass
@@ -1248,6 +1255,24 @@ class Environment():
         self.walkers_list = []
         self.all_id = []
 
+        # Destroy any actors left over from a previous run that didn't clean up cleanly.
+        try:
+            existing = self.world.get_actors()
+            stale_sensors  = list(existing.filter('sensor.*'))
+            stale_vehicles = list(existing.filter('vehicle.*'))
+            destroyed = 0
+            for actor in stale_sensors + stale_vehicles:
+                try:
+                    if actor.is_alive:
+                        actor.destroy()
+                        destroyed += 1
+                except Exception:
+                    pass
+            if destroyed:
+                log.info(f"Pre-spawn sweep: destroyed {destroyed} stale actor(s) from previous run.")
+        except Exception as e:
+            log.warning(f"Pre-spawn actor sweep failed (non-fatal): {e}")
+
         ### spawn ego ###
         self.spawn_ego_vehicle()
 
@@ -1259,22 +1284,31 @@ class Environment():
 
         ### sensor initialization ###
         # DOWN camera
-        self.camera_down = SensorManager(
-            self.world,
-            'RGBCamera',
-            carla.Transform(carla.Location(x=0, z=-1.5), carla.Rotation(pitch=-90)),
-            self.ego_vehicle,
-            {'fov': '90.0', 'image_size_x': '896', 'image_size_y': '896'}
-        )
 
-        # OVERVIEW camera (added back)
-        self.camera_overview = SensorManager(
-            self.world,
-            'RGBCamera',
-            carla.Transform(carla.Location(x=-1, z=7.0), carla.Rotation(pitch=-60)),
-            self.ego_vehicle,
-            {'fov': '60.0', 'image_size_x': '896', 'image_size_y': '896'}
-        )
+        self.camera_down = SensorManager(self.world, 'RGBCamera', carla.Transform(carla.Location(x=0, z=-1.5), carla.Rotation(pitch=-90)),
+                                    self.ego_vehicle, {
+                                                            'fov': '90.0',
+                                                            'image_size_x': '640',
+                                                            'image_size_y': '640',
+                                                            'enable_postprocess_effects': 'True',
+                                                            'focal_distance': '15000.0',
+                                                            'fstop': '1.4',
+                                                            'min_fstop': '1.2',
+                                                            'blade_count': '9',
+                                                            'exposure_mode': 'histogram',
+                                                            'exposure_compensation': '0.0',
+                                                            'motion_blur_intensity': '0.0',
+                                                        })
+
+        # OVERVIEW camera (disabled)
+        # self.camera_overview = SensorManager(
+        #     self.world,
+        #     'RGBCamera',
+        #     carla.Transform(carla.Location(x=-1, z=7.0), carla.Rotation(pitch=-60)),
+        #     self.ego_vehicle,
+        #     {'fov': '60.0', 'image_size_x': '896', 'image_size_y': '896'}
+        # )
+        self.camera_overview = None
 
         # Disable all other cameras explicitly
         self.camera_front = None

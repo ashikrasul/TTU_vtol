@@ -86,7 +86,7 @@ def plot_final_pos(run_folder, final_positions, ideal_x, ideal_y):
     plt.close()
 
 
-def save_results_to_csv(run_folder, initial_positions, final_positions, landing_times, landing_results, final_euler_angles):
+def save_results_to_csv(run_folder, initial_positions, final_positions, landing_times, landing_results, final_euler_angles, stop_reasons=None):
     """Save simulation results to a CSV file."""
     csv_file_path = os.path.join(run_folder, "simulation_results.csv")
     with open(csv_file_path, mode='w', newline='') as file:
@@ -97,23 +97,38 @@ def save_results_to_csv(run_folder, initial_positions, final_positions, landing_
             "Time to Land (s)",
             "Landing Result (Success/Fail)",
             "x_final", "y_final", "z_final",
-            "final_roll", "final_pitch", "final_yaw"
+            "final_roll", "final_pitch", "final_yaw",
+            "Stop Reason"
         ])
-        
+
         for i in range(len(initial_positions)):
             roll, pitch, yaw = (final_euler_angles[i] if final_euler_angles[i] else (None, None, None))
+            stop_reason = stop_reasons[i] if stop_reasons else None
             writer.writerow([
-                initial_positions[i][0], 
-                initial_positions[i][1], 
+                initial_positions[i][0],
+                initial_positions[i][1],
                 initial_positions[i][2],
                 landing_times[i],
                 landing_results[i],
                 final_positions[i][0],
                 final_positions[i][1],
                 final_positions[i][2],
-                roll, pitch, yaw
+                roll, pitch, yaw,
+                stop_reason
             ])
     logger.info(f"Results saved to {csv_file_path}")
+
+def _read_test_model(metadata):
+    """Read test_model from node_yolo's dedicated file; fall back to metadata."""
+    try:
+        with open(constants.test_model_file_path, 'r') as f:
+            name = f.read().strip()
+            if name:
+                return name
+    except Exception:
+        pass
+    return metadata.get("test_model", "N/A")
+
 
 def save_summary_to_csv_and_metadata(base_dir="runs", summary_file="performance_summary.csv"):
     """
@@ -198,15 +213,17 @@ def save_summary_to_csv_and_metadata(base_dir="runs", summary_file="performance_
     
 
     # Append results to CSV
-    summary_header = ["Run Number", "Std Dev (Position)", "Success Rate", "Optimization Run", "Model Name", "Scale", "HSV_V", "Test_model", "opt_success"]
+    summary_header = ["Run Number", "Std Dev (Position)", "Success Rate", "Optimization Run", "Model Name", "Training Folder", "Scale", "HSV_V", "Test_model", "opt_success", "acq_fn", "sim_ready"]
     summary_row = [
         latest_run, f"{std_dev:.6f}", f"{success_rate:.6f}", optimization_run,
         metadata.get("model_name", "N/A"),
+        metadata.get("training_folder", "N/A"),
         metadata.get("scale", "N/A"),
         metadata.get("hsv_v", "N/A"),
-        metadata.get("test_model", "N/A"), 
-        metadata.get("opt_success","N/A")
-
+        _read_test_model(metadata),
+        metadata.get("opt_success", "N/A"),
+        metadata.get("acq_fn", "N/A"),
+        metadata.get("sim_ready", "N/A"),
     ]
 
     file_exists = os.path.exists(summary_path)

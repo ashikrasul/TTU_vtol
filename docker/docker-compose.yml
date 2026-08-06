@@ -8,42 +8,38 @@ services:
     network_mode: host
     command: /bin/bash -c 'source /opt/ros/noetic/setup.bash && roscore'
 
-  # carla:
-  #       image: arasul42/carla_ue5:latest
-  #       logging:
-  #         options:
-  #           max-size: "10m"
-  #           max-file: "3"
-  #       privileged: true
-  #       environment:
-  #           SDL_VIDEODRIVER: x11
-  #           DISPLAY: $DISPLAY
-  #       ports:
-  #           - "2000:2000"
-  #           - "2001:2001"
-  #           - "2002:2002"
-  #       # command: /home/carla/Linux/CarlaUnreal.sh
-  #       command: >
-  #         bash -lc "mkdir -p /tmp/runtime-root && chmod 0700 /tmp/runtime-root &&
-  #                 exec /home/carla/Linux/CarlaUnreal.sh -RenderOffScreen -quality-level=Low"
-  #       volumes:
-  #           - /tmp/.X11-unix:/tmp/.X11-unix:rw
-  #           - /etc/localtime:/etc/localtime
-  #           - /etc/timezone:/etc/timezone
-  #           - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
-  #       shm_size: "2gb"
-  #       device_requests:
-  #       - driver: nvidia
-  #         count: all
-  #         capabilities: [gpu]
-  #       restart: unless-stopped
-  #       deploy:
-  #         resources:
-  #           reservations:
-  #             devices:
-  #               - driver: nvidia
-  #                 count: "all"
-  #                 capabilities: [compute,utility,graphics,display]
+  carla:
+        image: arasul42/carla_ue5:latest
+        logging:
+          options:
+            max-size: "10m"
+            max-file: "3"
+        privileged: true
+        environment:
+            SDL_VIDEODRIVER: x11
+            DISPLAY: $DISPLAY
+        ports:
+            - "2000:2000"
+            - "2001:2001"
+            - "2002:2002"
+        # command: /home/carla/Linux/CarlaUnreal.sh
+        command: >
+          bash -lc "mkdir -p /tmp/runtime-root && chmod 0700 /tmp/runtime-root &&
+                  exec /home/carla/Linux/CarlaUnreal.sh -RenderOffScreen -quality-level=Low"
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix:rw
+            - /etc/localtime:/etc/localtime
+            - /etc/timezone:/etc/timezone
+            - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+        shm_size: "2gb"
+        restart: unless-stopped
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                  count: "all"
+                  capabilities: [compute,utility,graphics,display]
 
   carla_ue5:
     image: arasul42/carla_ue5:latest
@@ -81,8 +77,9 @@ services:
       bash -lc "
         mkdir -p /tmp/runtime-root && chmod 0700 /tmp/runtime-root &&
         exec /home/carla/Linux/CarlaUnreal.sh
+          -RenderOffScreen
           -quality-level=Low
-          -ResX=640 -ResY=360
+          -ResX=400 -ResY=300
           -fps=5
           -nosound
       "
@@ -95,7 +92,7 @@ services:
 
 
   carla_ue4:
-      image: stargaze0909/carla_uli_ubuntu20:latest
+      image: arasul42/carla_uli_ubuntu20:latest
       logging:
         options:
           max-size: "10m"
@@ -108,7 +105,11 @@ services:
           - "2000:2000"
           - "2001:2001"
           - "2002:2002"
-      command: ./CarlaUE4.sh #-quality-level=Low -carla-rpc-port=2000
+      command: >
+        bash -lc "
+          id -u carla &>/dev/null || useradd -m -u 1000 carla &&
+          exec su -s /bin/bash carla -c 'cd /carla && DISPLAY=$DISPLAY ./CarlaUE4.sh -nosound'
+        "
       volumes:
           - /tmp/.X11-unix:/tmp/.X11-unix:rw
           - /etc/localtime:/etc/localtime
@@ -237,6 +238,8 @@ services:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
       - SERVICE_NAME=jaxguam
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
     command: >
       bash -lc "source /opt/ros/noetic/setup.bash &&
               cd /catkin_ws && catkin_make &&
@@ -244,6 +247,13 @@ services:
               source /opt/conda/etc/profile.d/conda.sh &&
               conda activate py310 &&
               tail -f /dev/null"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: "all"
+              capabilities: [compute,utility,graphics,display]
 
   yolov5:
     container_name: yolov5

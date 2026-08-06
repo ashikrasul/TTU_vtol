@@ -27,18 +27,20 @@ def get_actor_display_name(actor, truncate=250):
 class CollisionSensor(object):
     """ Class for collision sensors"""
 
-    def __init__(self, parent_actor, panic=False):   #, hud):
+    def __init__(self, parent_actor, panic=False, panic_intensity_threshold=10.0, grace_frames=10):
         """Constructor method"""
         self.sensor = None
         self.history = []
         self.panic = panic
+        self.panic_intensity_threshold = panic_intensity_threshold
+        self.grace_frames = grace_frames
+        self._spawn_frame = None
         self._parent = parent_actor
         # self.hud = hud
         world = self._parent.get_world()
         blueprint = world.get_blueprint_library().find('sensor.other.collision')
         self.sensor = world.spawn_actor(blueprint, carla.Transform(), attach_to=self._parent)
-        # We need to pass the lambda a weak reference to
-        # self to avoid circular reference.
+        self._spawn_frame = world.get_snapshot().frame
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda event: CollisionSensor._on_collision(weak_self, event))
 
@@ -64,7 +66,10 @@ class CollisionSensor(object):
         if len(self.history) > 4000:
             self.history.pop(0)
         if self.panic:
-            assert False, "COLLISION, COLLISION"
+            in_grace = (self._spawn_frame is not None and
+                        event.frame - self._spawn_frame < self.grace_frames)
+            if not in_grace and intensity >= self.panic_intensity_threshold:
+                assert False, "COLLISION, COLLISION"
 
 
 

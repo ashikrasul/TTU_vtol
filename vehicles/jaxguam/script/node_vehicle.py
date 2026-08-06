@@ -96,7 +96,6 @@ class GUAM_Node(Vehicle_Node):
             chi_des=0
             chi_dot_des = 0
             pos_des = self.initial_position
-            chi_des = self.initial_angular_position[1]
         # After initialization
         else:
             vel_bIc_des = np.array([msg.linear.x, msg.linear.y, msg.linear.z])*10
@@ -184,7 +183,16 @@ class GUAM_Node(Vehicle_Node):
                     Ref_list.append(ref_inputs.Vel_bIc_des.tolist() + ref_inputs.Pos_des.tolist())
                     Tb_state.append(jax2np(b_state))
 
-                self.publish_state(b_state)
+                try:
+                    self.publish_state(b_state)
+                except rospy.exceptions.ROSException:
+                    # Topic closed mid-publish — a new node with the same
+                    # name registered (ROS killed our connections) right as
+                    # rospy.is_shutdown() was about to flip True. Treat this
+                    # as a normal shutdown rather than a crash.
+                    logger.warning("Publish failed on a closed topic — "
+                                   "node is shutting down. Exiting loop.")
+                    break
 
                 if self.skip_sleep == False:
                     loop_rate.sleep()

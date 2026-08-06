@@ -10,6 +10,7 @@ from utils import constants
 from utils.config import parse_hierarchical_config, write_flattened_config, read_shared_tmp_file
 from utils.docker import ContainerManager
 from utils.logging import set_logger, log
+from utils.carla_native import start_carla, stop_carla, _carla_port_open
 
 
 def get_args():
@@ -29,12 +30,22 @@ class Test:
         signal.signal(signal.SIGINT, self.shutdown_handler)
         signal.signal(signal.SIGTERM, self.shutdown_handler)
 
+        # Launch native CARLA unless it's already running (e.g. started
+        # by bo_optimizer.py before invoking rraaa.py as a subprocess).
+        if _carla_port_open():
+            self.carla_proc = None
+        else:
+            self.carla_proc = start_carla()
+
         self.containermanager = ContainerManager(self.config, constants.compose_file)
 
     def shutdown(self, signal_number=None):
         """Gracefully shuts down all containers and processes."""
         if hasattr(self, 'containermanager') and self.containermanager:
             self.containermanager.terminate_all()
+        if hasattr(self, 'carla_proc') and self.carla_proc:
+            stop_carla(self.carla_proc)
+            self.carla_proc = None
         if signal_number is None:
             log.info("Terminated.")
         else:
